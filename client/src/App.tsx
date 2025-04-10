@@ -1,10 +1,8 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
-import DashboardLayout from './layouts/DashboardLayout';
-import AuthLayout from './layouts/AuthLayout';
+import MainLayout from './layouts/MainLayout';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -20,55 +18,91 @@ import Settings from './pages/Settings';
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div className="loading">Loading...</div>;
-  }
-
+  // In a real app, you would check if the user is authenticated
+  const isAuthenticated = true; // For demo purposes, always authenticated
+  
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-
+  
   return <>{children}</>;
 };
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // For demo purposes
+  
   return (
-    <Routes>
-      {/* Auth routes */}
-      <Route path="/" element={<AuthLayout />}>
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-      </Route>
-
-      {/* Dashboard routes - protected */}
-      <Route
-        path="/dashboard"
-        element={
+    <Router>
+      <Routes>
+        {/* Auth routes */}
+        <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected routes */}
+        <Route path="/" element={
           <ProtectedRoute>
-            <DashboardLayout />
+            <MainLayout>
+              <Dashboard />
+            </MainLayout>
           </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="customers" element={<Customers />} />
-        <Route path="customers/:id" element={<CustomerDetail />} />
-        <Route path="invoices" element={<Invoices />} />
-        <Route path="invoices/create" element={<CreateInvoice />} />
-        <Route path="invoices/:id" element={<InvoiceDetail />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-
-      {/* Redirect root to dashboard if authenticated, otherwise to login */}
-      <Route
-        path="/"
-        element={<Navigate to="/dashboard" replace />}
-      />
-
-      {/* 404 route */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        } />
+        
+        <Route path="/customers" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Customers />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/customers/:id" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CustomerDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/invoices" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Invoices />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/invoices/:id" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <InvoiceDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/invoices/new" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Settings />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        {/* 404 route */}
+        <Route path="*" element={
+          <MainLayout>
+            <NotFound />
+          </MainLayout>
+        } />
+      </Routes>
+    </Router>
   );
 };
 
