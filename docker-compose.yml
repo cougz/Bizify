@@ -35,7 +35,7 @@ services:
     command: >
       bash -c "
         echo 'Waiting for PostgreSQL to be ready...' &&
-        pip install fpdf==1.7.2 &&
+        pip install reportlab==4.0.4 &&
         python -m migrations.create_tables &&
         python -m migrations.seed_data &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
