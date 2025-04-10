@@ -8,6 +8,7 @@ import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
+import CreateCustomer from './pages/CreateCustomer';
 import Invoices from './pages/Invoices';
 import InvoiceDetail from './pages/InvoiceDetail';
 import CreateInvoice from './pages/CreateInvoice';
@@ -53,6 +54,14 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <MainLayout>
               <Customers />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/customers/new" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCustomer />
             </MainLayout>
           </ProtectedRoute>
         } />
