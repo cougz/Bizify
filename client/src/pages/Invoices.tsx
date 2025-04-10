@@ -28,50 +28,9 @@ const Invoices: React.FC = () => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await invoicesAPI.getAll();
-        // setInvoices(response.data);
-        
-        // Mock data
-        setInvoices([
-          {
-            id: '1',
-            invoice_number: 'INV-001',
-            customer_name: 'Acme Inc',
-            issue_date: '2023-03-01T00:00:00Z',
-            due_date: '2023-03-31T00:00:00Z',
-            total: 1250.00,
-            status: 'paid'
-          },
-          {
-            id: '2',
-            invoice_number: 'INV-002',
-            customer_name: 'XYZ Corp',
-            issue_date: '2023-03-15T00:00:00Z',
-            due_date: '2023-04-15T00:00:00Z',
-            total: 3750.50,
-            status: 'pending'
-          },
-          {
-            id: '3',
-            invoice_number: 'INV-003',
-            customer_name: 'ABC Ltd',
-            issue_date: '2023-02-15T00:00:00Z',
-            due_date: '2023-03-15T00:00:00Z',
-            total: 850.75,
-            status: 'overdue'
-          },
-          {
-            id: '4',
-            invoice_number: 'INV-004',
-            customer_name: 'Smith & Co',
-            issue_date: '2023-03-20T00:00:00Z',
-            due_date: '2023-04-20T00:00:00Z',
-            total: 1500.00,
-            status: 'draft'
-          }
-        ]);
-        
+        // Fetch invoices from the API
+        const response = await invoicesAPI.getAll();
+        setInvoices(response.data);
         setError('');
       } catch (err) {
         setError('Failed to load invoices');
@@ -101,18 +60,27 @@ const Invoices: React.FC = () => {
 
   const handleDownloadPdf = async (id: string) => {
     try {
-      // In a real app, you would call the API and download the PDF
-      // const response = await invoicesAPI.getPdf(id);
-      // const url = window.URL.createObjectURL(new Blob([response.data]));
-      // const link = document.createElement('a');
-      // link.href = url;
-      // link.setAttribute('download', `invoice-${id}.pdf`);
-      // document.body.appendChild(link);
-      // link.click();
-      // link.remove();
+      // Call the API and download the PDF
+      const response = await invoicesAPI.getPdf(id);
       
-      // For demo purposes, just show an alert
-      alert(`Downloading PDF for invoice ${id}`);
+      // Create a blob from the PDF data
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${id}.pdf`);
+      
+      // Append to the document, click it, and remove it
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up the URL object
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       setError('Failed to download invoice PDF');
       console.error(err);

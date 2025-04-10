@@ -26,41 +26,9 @@ const Customers: React.FC = () => {
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await customersAPI.getAll();
-        // setCustomers(response.data);
-        
-        // Mock data
-        setCustomers([
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            phone: '(123) 456-7890',
-            company: 'Acme Inc',
-            address: '123 Main St, City, Country',
-            created_at: '2023-01-15T00:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            phone: '(098) 765-4321',
-            company: 'XYZ Corp',
-            address: '456 Oak Ave, Town, Country',
-            created_at: '2023-02-20T00:00:00Z'
-          },
-          {
-            id: '3',
-            name: 'Bob Johnson',
-            email: 'bob@example.com',
-            phone: '(555) 123-4567',
-            company: 'ABC Ltd',
-            address: '789 Pine Rd, Village, Country',
-            created_at: '2023-03-10T00:00:00Z'
-          }
-        ]);
-        
+        // Fetch customers from the API
+        const response = await customersAPI.getAll();
+        setCustomers(response.data);
         setError('');
       } catch (err) {
         setError('Failed to load customers');
