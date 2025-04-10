@@ -44,6 +44,12 @@ const App: React.FC = () => {
           </MainLayout>
         } />
         
+        <Route path="/customers/edit/:id" element={
+          <MainLayout>
+            <CreateCustomer />
+          </MainLayout>
+        } />
+        
         <Route path="/customers/:id" element={
           <MainLayout>
             <CustomerDetail />

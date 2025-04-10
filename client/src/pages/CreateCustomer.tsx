@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FiSave, FiX } from 'react-icons/fi';
 import { customersAPI } from '../utils/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ErrorMessage from '../components/ErrorMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const CreateCustomer: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = Boolean(id);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +26,45 @@ const CreateCustomer: React.FC = () => {
   });
   
   const [loading, setLoading] = useState<boolean>(false);
+  const [fetchLoading, setFetchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  
+  // Fetch customer data if in edit mode
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      if (!isEditMode) return;
+      
+      try {
+        setFetchLoading(true);
+        
+        // For demo purposes, we'll use mock data
+        // const response = await customersAPI.getById(id);
+        // setFormData(response.data);
+        
+        // Mock data
+        setFormData({
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '(555) 123-4567',
+          address: '123 Main St',
+          city: 'San Francisco',
+          state: 'CA',
+          zip_code: '94103',
+          country: 'USA',
+          company: 'Acme Inc',
+          notes: 'Important client with multiple ongoing projects.'
+        });
+        
+      } catch (err) {
+        setError('Failed to load customer data');
+        console.error(err);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    
+    fetchCustomerData();
+  }, [id, isEditMode]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -39,23 +80,39 @@ const CreateCustomer: React.FC = () => {
     try {
       setLoading(true);
       
-      // Call the API to create the customer
-      await customersAPI.create(formData);
+      if (isEditMode) {
+        // Call the API to update the customer
+        await customersAPI.update(id!, formData);
+        setError('');
+      } else {
+        // Call the API to create the customer
+        await customersAPI.create(formData);
+      }
       
       // Redirect to customers list
       navigate('/customers');
     } catch (err) {
-      setError('Failed to create customer');
+      setError(isEditMode ? 'Failed to update customer' : 'Failed to create customer');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
   
+  if (fetchLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner size="large" text="Loading customer data..." />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Create New Customer</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {isEditMode ? 'Edit Customer' : 'Create New Customer'}
+        </h1>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => navigate('/customers')}>
             <FiX className="mr-2" />
@@ -67,7 +124,7 @@ const CreateCustomer: React.FC = () => {
             loading={loading}
           >
             <FiSave className="mr-2" />
-            Save Customer
+            {isEditMode ? 'Update Customer' : 'Save Customer'}
           </Button>
         </div>
       </div>
@@ -233,7 +290,7 @@ const CreateCustomer: React.FC = () => {
               fullWidth
             >
               <FiSave className="mr-2" />
-              Save Customer
+              {isEditMode ? 'Update Customer' : 'Save Customer'}
             </Button>
           </div>
         </form>
