@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: bizify-postgres
+    environment:
+      POSTGRES_USER: bizify
+      POSTGRES_PASSWORD: bizify_password
+      POSTGRES_DB: bizify
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: ../docker/backend.Dockerfile
+    container_name: bizify-backend
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://bizify:bizify_password@postgres:5432/bizify
+      - SECRET_KEY=your_secret_key_here
+      - ENVIRONMENT=development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: ../docker/frontend.Dockerfile
+    container_name: bizify-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

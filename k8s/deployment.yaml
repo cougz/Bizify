@@ -1,0 +1,118 @@
+# Kubernetes deployment configuration for Bizify
+# This is a placeholder for future Kubernetes deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizify-backend
+  labels:
+    app: bizify
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bizify
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: bizify
+        tier: backend
+    spec:
+      containers:
+      - name: bizify-backend
+        image: bizify-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: postgresql://bizify:bizify_password@postgres:5432/bizify
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bizify-secrets
+              key: secret-key
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizify-frontend
+  labels:
+    app: bizify
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bizify
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: bizify
+        tier: frontend
+    spec:
+      containers:
+      - name: bizify-frontend
+        image: bizify-frontend:latest
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bizify-backend-service
+  labels:
+    app: bizify
+    tier: backend
+spec:
+  selector:
+    app: bizify
+    tier: backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bizify-frontend-service
+  labels:
+    app: bizify
+    tier: frontend
+spec:
+  selector:
+    app: bizify
+    tier: frontend
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bizify-secrets
+type: Opaque
+data:
+  secret-key: eW91cl9zZWNyZXRfa2V5X2hlcmU= # base64 encoded "your_secret_key_here"
