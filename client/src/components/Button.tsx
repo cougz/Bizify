@@ -1,90 +1,60 @@
-import React, { ReactNode } from 'react';
+import React, { ButtonHTMLAttributes } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark' | 'link';
-type ButtonSize = 'sm' | 'md' | 'lg';
-
-interface ButtonProps {
-  children: ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  className?: string;
-  type?: 'button' | 'submit' | 'reset';
-  disabled?: boolean;
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'link';
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
-  fullWidth?: boolean;
-  icon?: ReactNode;
-  iconPosition?: 'left' | 'right';
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  className?: string;
 }
 
-/**
- * Button component
- */
 const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'primary',
-  size = 'md',
-  className = '',
-  type = 'button',
-  disabled = false,
+  size = 'medium',
   loading = false,
-  fullWidth = false,
-  icon,
-  iconPosition = 'left',
-  onClick
+  className = '',
+  disabled,
+  ...rest
 }) => {
-  // Base classes
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded focus:outline-none transition-colors';
   
-  // Size classes
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base'
-  }[size];
-  
-  // Variant classes
   const variantClasses = {
-    primary: 'bg-primary-color hover:bg-blue-600 text-white',
-    secondary: 'bg-secondary-color hover:bg-gray-700 text-white',
-    success: 'bg-success-color hover:bg-green-600 text-white',
-    danger: 'bg-danger-color hover:bg-red-600 text-white',
-    warning: 'bg-warning-color hover:bg-yellow-500 text-white',
-    info: 'bg-blue-400 hover:bg-blue-500 text-white',
-    light: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
-    dark: 'bg-gray-800 hover:bg-gray-900 text-white',
-    link: 'bg-transparent hover:underline text-primary-color p-0'
-  }[variant];
+    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+    success: 'bg-green-600 hover:bg-green-700 text-white',
+    danger: 'bg-red-600 hover:bg-red-700 text-white',
+    link: 'bg-transparent text-blue-600 hover:text-blue-800 hover:underline p-0'
+  };
   
-  // Disabled classes
-  const disabledClasses = disabled || loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
+  const sizeClasses = {
+    small: 'text-xs px-2 py-1',
+    medium: 'text-sm px-4 py-2',
+    large: 'text-base px-6 py-3'
+  };
   
-  // Width classes
-  const widthClasses = fullWidth ? 'w-full' : '';
+  const disabledClasses = disabled || loading ? 'opacity-50 cursor-not-allowed' : '';
   
-  // Combine all classes
-  const buttonClasses = `${baseClasses} ${sizeClasses} ${variantClasses} ${disabledClasses} ${widthClasses} ${className}`;
-  
+  const buttonClasses = `
+    ${baseClasses}
+    ${variant !== 'link' ? sizeClasses[size] : ''}
+    ${variantClasses[variant]}
+    ${disabledClasses}
+    ${className}
+  `;
+
   return (
     <button
-      type={type}
       className={buttonClasses}
       disabled={disabled || loading}
-      onClick={onClick}
+      {...rest}
     >
       {loading && (
-        <span className="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       )}
-      
-      {icon && iconPosition === 'left' && !loading && (
-        <span className="mr-2">{icon}</span>
-      )}
-      
       {children}
-      
-      {icon && iconPosition === 'right' && (
-        <span className="ml-2">{icon}</span>
-      )}
     </button>
   );
 };

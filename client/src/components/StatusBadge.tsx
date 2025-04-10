@@ -1,60 +1,33 @@
 import React from 'react';
 
-type StatusType = 'paid' | 'pending' | 'overdue' | 'draft' | 'cancelled' | 'active' | 'inactive' | string;
-
 interface StatusBadgeProps {
-  status: StatusType;
+  status: string;
   className?: string;
 }
 
-/**
- * Status badge component for displaying status indicators
- */
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
-  // Determine color based on status
-  const getStatusColor = (status: StatusType): string => {
-    const statusLower = status.toLowerCase();
-    
-    switch (statusLower) {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'paid':
-      case 'active':
-      case 'completed':
-      case 'approved':
-        return 'bg-green-100 text-green-800'; // Success
-      
+        return 'bg-green-100 text-green-800';
       case 'pending':
-      case 'in progress':
-      case 'processing':
-        return 'bg-yellow-100 text-yellow-800'; // Warning
-      
+        return 'bg-yellow-100 text-yellow-800';
       case 'overdue':
-      case 'late':
-      case 'rejected':
-      case 'failed':
-        return 'bg-red-100 text-red-800'; // Danger
-      
+        return 'bg-red-100 text-red-800';
       case 'draft':
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800'; // Neutral
-      
+        return 'bg-gray-100 text-gray-800';
       case 'cancelled':
-        return 'bg-purple-100 text-purple-800'; // Info
-      
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-blue-100 text-blue-800'; // Default
+        return 'bg-blue-100 text-blue-800';
     }
   };
 
-  // Format status text
-  const formatStatus = (status: StatusType): string => {
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-  };
+  const statusColor = getStatusColor(status);
 
   return (
-    <span 
-      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(status)} ${className}`}
-    >
-      {formatStatus(status)}
+    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${statusColor} ${className}`}>
+      {status}
     </span>
   );
 };

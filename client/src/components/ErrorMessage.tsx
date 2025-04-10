@@ -1,34 +1,19 @@
 import React from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
 
 interface ErrorMessageProps {
   message: string;
-  className?: string;
   onDismiss?: () => void;
 }
 
-/**
- * Error message component
- */
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
-  message,
-  className = '',
-  onDismiss
-}) => {
-  if (!message) return null;
-
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onDismiss }) => {
   return (
-    <div className={`bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative ${className}`} role="alert">
-      <div className="flex items-center">
-        <FiAlertTriangle className="mr-2" size={18} />
-        <span>{message}</span>
-      </div>
-      
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+      <span className="block sm:inline">{message}</span>
       {onDismiss && (
         <button
-          className="absolute top-0 right-0 mt-2 mr-2 text-red-700 hover:text-red-900"
           onClick={onDismiss}
-          aria-label="Dismiss"
+          className="absolute top-0 bottom-0 right-0 px-4 py-3"
+          aria-label="Close"
         >
           <span className="text-xl">&times;</span>
         </button>
