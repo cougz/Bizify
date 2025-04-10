@@ -34,20 +34,31 @@ services:
         condition: service_healthy
     volumes:
       - ./server:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        python -m migrations.create_tables &&
+        python -m migrations.seed_data &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
 
   frontend:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
+      target: development
     container_name: bizify-frontend
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - backend
     volumes:
       - ./client:/app
       - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - WDS_SOCKET_PORT=3000
 
 volumes:
   postgres_data:

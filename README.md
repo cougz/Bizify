@@ -33,16 +33,9 @@ Bizify is a comprehensive business management dashboard focused on invoicing and
 ## Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose (for containerized mode)
-- Node.js (for frontend development)
-- Python 3.8+ (for backend development)
-- PostgreSQL (for local development without Docker)
+- Docker and Docker Compose
 
-### Installation Options
-
-#### Option 1: Using Docker (Recommended)
-
-This is the easiest way to get started as it sets up everything including the PostgreSQL database in containers:
+### Installation
 
 1. Clone the repository
 2. Run the setup script:
@@ -53,43 +46,16 @@ This is the easiest way to get started as it sets up everything including the Po
    ```bash
    ./run.sh
    ```
+   
+   To rebuild containers after making changes:
+   ```bash
+   ./run.sh --build
+   ```
+
 4. Access the application:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
-
-#### Option 2: Local Development
-
-For local development without Docker, you'll need to set up PostgreSQL manually:
-
-1. Clone the repository
-2. Install PostgreSQL and create a database:
-   ```bash
-   # Create database and user (commands may vary based on your PostgreSQL installation)
-   createdb bizify
-   createuser -P bizify  # Set password to 'bizify_password'
-   psql -c "GRANT ALL PRIVILEGES ON DATABASE bizify TO bizify;"
-   ```
-3. Run the setup script:
-   ```bash
-   ./setup.sh
-   ```
-4. Start the application in development mode:
-   ```bash
-   ./run.sh --dev
-   ```
-   
-   Alternatively, you can start the frontend and backend separately:
-   ```bash
-   # Terminal 1 - Frontend
-   cd client
-   npm start
-   
-   # Terminal 2 - Backend
-   cd server
-   source ../venv/bin/activate  # On Windows: .\venv\Scripts\activate
-   python run.py
-   ```
 
 ### Test Credentials
 
@@ -124,27 +90,17 @@ bizify/
 
 ## Development
 
-### Virtual Environment
+### Making Changes
 
-The setup script creates a Python virtual environment in the `venv` directory. To activate it manually:
+The Docker setup includes volume mounts for both the frontend and backend code, so you can make changes to the code and see them reflected immediately:
 
-```bash
-# On Linux/macOS
-source venv/bin/activate
+1. Frontend changes will be automatically detected and the browser will refresh
+2. Backend changes will trigger a reload of the FastAPI server
+3. Database changes persist in a Docker volume
 
-# On Windows
-.\venv\Scripts\activate
-```
+### Database
 
-### Database Migrations
-
-To manually run database migrations:
-
-```bash
-cd server
-source ../venv/bin/activate  # On Windows: .\venv\Scripts\activate
-python setup_db.py
-```
+The PostgreSQL database is automatically set up with the required schema and seed data when the containers start. The database data is persisted in a Docker volume, so it will be preserved between container restarts.
 
 ## License
 

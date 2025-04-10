@@ -1,3 +1,26 @@
+# Development stage
+FROM node:18-alpine as development
+
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY client/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the client code
+COPY client/ ./
+
+# Set environment variables
+ENV REACT_APP_API_URL=http://localhost:8000/api
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "start"]
+
 # Build stage
 FROM node:18-alpine as build
 
@@ -19,7 +42,7 @@ ENV REACT_APP_API_URL=http://localhost:8000/api
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:alpine as production
 
 # Copy custom nginx config
 COPY client/nginx.conf /etc/nginx/conf.d/default.conf
