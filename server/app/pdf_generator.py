@@ -1,310 +1,110 @@
-from weasyprint import HTML, CSS
-from weasyprint.text.fonts import FontConfiguration
-from jinja2 import Environment, FileSystemLoader
-import os
-import tempfile
-from datetime import datetime
+from fpdf import FPDF
 
-# Set up Jinja2 environment
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-if not os.path.exists(template_dir):
-    os.makedirs(template_dir)
-env = Environment(loader=FileSystemLoader(template_dir))
-
-# Create invoice template if it doesn't exist
-invoice_template_path = os.path.join(template_dir, 'invoice_template.html')
-if not os.path.exists(invoice_template_path):
-    with open(invoice_template_path, 'w') as f:
-        f.write('''
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Invoice {{ invoice.invoice_number }}</title>
-    <style>
-        @page {
-            size: letter;
-            margin: 1.5cm;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-        }
-        .header {
-            margin-bottom: 30px;
-        }
-        .company-info {
-            float: left;
-            width: 60%;
-        }
-        .invoice-info {
-            float: right;
-            width: 40%;
-            text-align: right;
-        }
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .invoice-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .invoice-number {
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-        .invoice-date {
-            margin-bottom: 5px;
-        }
-        .invoice-due {
-            margin-bottom: 20px;
-        }
-        .customer-info {
-            margin-bottom: 30px;
-            clear: both;
-        }
-        .customer-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .customer-name {
-            font-weight: bold;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th {
-            background-color: #f5f7fa;
-            border-bottom: 2px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        .item-description {
-            width: 50%;
-        }
-        .item-quantity, .item-price, .item-amount {
-            width: 16.66%;
-            text-align: right;
-        }
-        .totals {
-            width: 30%;
-            float: right;
-            margin-bottom: 30px;
-        }
-        .totals table {
-            width: 100%;
-        }
-        .totals td {
-            border: none;
-            padding: 5px 10px;
-        }
-        .totals .label {
-            text-align: left;
-        }
-        .totals .amount {
-            text-align: right;
-        }
-        .total-row td {
-            font-weight: bold;
-            border-top: 2px solid #ddd;
-        }
-        .notes {
-            margin-top: 40px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
-        .notes-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            color: #777;
-            font-size: 11px;
-        }
-        .status-paid {
-            color: #27ae60;
-            font-weight: bold;
-        }
-        .status-pending {
-            color: #f39c12;
-            font-weight: bold;
-        }
-        .status-overdue {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-    </style>
-</head>
-<body>
-    <div class="header clearfix">
-        <div class="company-info">
-            <div class="company-name">{{ settings.company_name }}</div>
-            <div>{{ settings.company_address }}</div>
-            <div>{{ settings.company_city }}, {{ settings.company_state }} {{ settings.company_zip }}</div>
-            <div>{{ settings.company_country }}</div>
-            <div>{{ settings.company_phone }}</div>
-            <div>{{ settings.company_email }}</div>
-            <div>{{ settings.company_website }}</div>
-        </div>
-        <div class="invoice-info">
-            <div class="invoice-title">INVOICE</div>
-            <div class="invoice-number"># {{ invoice.invoice_number }}</div>
-            <div class="invoice-date">Issue Date: {{ invoice.issue_date.strftime('%B %d, %Y') }}</div>
-            <div class="invoice-due">Due Date: {{ invoice.due_date.strftime('%B %d, %Y') }}</div>
-            <div>
-                Status: 
-                {% if invoice.status == 'paid' %}
-                <span class="status-paid">PAID</span>
-                {% elif invoice.status == 'pending' %}
-                <span class="status-pending">PENDING</span>
-                {% elif invoice.status == 'overdue' %}
-                <span class="status-overdue">OVERDUE</span>
-                {% else %}
-                {{ invoice.status.upper() }}
-                {% endif %}
-            </div>
-        </div>
-    </div>
+def generate_pdf(invoice_data):
+    """
+    Generate a PDF invoice using FPDF
     
-    <div class="customer-info">
-        <div class="customer-title">BILL TO:</div>
-        <div class="customer-name">{{ invoice.customer.name }}</div>
-        <div>{{ invoice.customer.company }}</div>
-        <div>{{ invoice.customer.address }}</div>
-        <div>{{ invoice.customer.city }}, {{ invoice.customer.state }} {{ invoice.customer.zip_code }}</div>
-        <div>{{ invoice.customer.country }}</div>
-        <div>{{ invoice.customer.phone }}</div>
-        <div>{{ invoice.customer.email }}</div>
-    </div>
+    Args:
+        invoice_data: Dictionary containing invoice information
+        
+    Returns:
+        PDF file content as bytes
+    """
+    pdf = FPDF()
+    pdf.add_page()
     
-    <table>
-        <thead>
-            <tr>
-                <th class="item-description">Description</th>
-                <th class="item-quantity">Quantity</th>
-                <th class="item-price">Unit Price</th>
-                <th class="item-amount">Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in invoice.items %}
-            <tr>
-                <td class="item-description">{{ item.description }}</td>
-                <td class="item-quantity">{{ item.quantity }}</td>
-                <td class="item-price">{{ currency_symbol }}{{ "%.2f"|format(item.unit_price) }}</td>
-                <td class="item-amount">{{ currency_symbol }}{{ "%.2f"|format(item.amount) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    # Set up fonts
+    pdf.set_font("Arial", "B", 16)
     
-    <div class="totals">
-        <table>
-            <tr>
-                <td class="label">Subtotal:</td>
-                <td class="amount">{{ currency_symbol }}{{ "%.2f"|format(invoice.subtotal) }}</td>
-            </tr>
-            {% if invoice.discount > 0 %}
-            <tr>
-                <td class="label">Discount:</td>
-                <td class="amount">{{ currency_symbol }}{{ "%.2f"|format(invoice.discount) }}</td>
-            </tr>
-            {% endif %}
-            {% if invoice.tax_rate > 0 %}
-            <tr>
-                <td class="label">Tax ({{ "%.2f"|format(invoice.tax_rate) }}%):</td>
-                <td class="amount">{{ currency_symbol }}{{ "%.2f"|format(invoice.tax_amount) }}</td>
-            </tr>
-            {% endif %}
-            <tr class="total-row">
-                <td class="label">Total:</td>
-                <td class="amount">{{ currency_symbol }}{{ "%.2f"|format(invoice.total) }}</td>
-            </tr>
-        </table>
-    </div>
+    # Header
+    pdf.cell(190, 10, "INVOICE", 0, 1, "C")
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(190, 10, f"Invoice #{invoice_data.get('invoice_number', 'N/A')}", 0, 1, "C")
+    pdf.ln(5)
     
-    {% if invoice.notes %}
-    <div class="notes">
-        <div class="notes-title">Notes:</div>
-        <div>{{ invoice.notes }}</div>
-    </div>
-    {% endif %}
+    # Company info
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(95, 10, "From:", 0, 0)
+    pdf.cell(95, 10, "To:", 0, 1)
     
-    <div class="footer">
-        {% if settings.invoice_footer %}
-        {{ settings.invoice_footer }}
-        {% else %}
-        Thank you for your business!
-        {% endif %}
-    </div>
-</body>
-</html>
-        ''')
-
-def get_currency_symbol(currency_code):
-    """Get currency symbol from currency code."""
-    currency_symbols = {
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£',
-        'JPY': '¥',
-        'CAD': 'C$',
-        'AUD': 'A$',
-        'CHF': 'CHF',
-        'CNY': '¥',
-        'INR': '₹',
-        'BRL': 'R$',
-        'RUB': '₽',
-        'KRW': '₩',
-        'SGD': 'S$',
-        'NZD': 'NZ$',
-        'MXN': 'MX$',
-        'HKD': 'HK$',
-    }
-    return currency_symbols.get(currency_code, currency_code)
-
-def generate_pdf(invoice, settings):
-    """Generate PDF from invoice data."""
-    # Load template
-    template = env.get_template('invoice_template.html')
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 5, invoice_data.get("company_name", "Your Company"), 0, 0)
+    pdf.cell(95, 5, invoice_data.get("customer_name", "Customer"), 0, 1)
     
-    # Get currency symbol
-    currency_symbol = get_currency_symbol(settings.currency if settings else 'USD')
+    pdf.cell(95, 5, invoice_data.get("company_address", ""), 0, 0)
+    pdf.cell(95, 5, invoice_data.get("customer_address", ""), 0, 1)
     
-    # Render template with data
-    html_content = template.render(
-        invoice=invoice,
-        settings=settings,
-        currency_symbol=currency_symbol
-    )
+    pdf.cell(95, 5, invoice_data.get("company_email", ""), 0, 0)
+    pdf.cell(95, 5, invoice_data.get("customer_email", ""), 0, 1)
     
-    # Configure fonts
-    font_config = FontConfiguration()
+    pdf.ln(10)
     
-    # Create PDF
-    pdf = HTML(string=html_content).write_pdf(
-        stylesheets=[],
-        font_config=font_config
-    )
+    # Invoice details
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(47.5, 10, "Invoice Date", 1, 0, "C")
+    pdf.cell(47.5, 10, "Due Date", 1, 0, "C")
+    pdf.cell(47.5, 10, "Status", 1, 0, "C")
+    pdf.cell(47.5, 10, "Amount Due", 1, 1, "C")
     
-    return pdf
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(47.5, 10, invoice_data.get("issue_date", ""), 1, 0, "C")
+    pdf.cell(47.5, 10, invoice_data.get("due_date", ""), 1, 0, "C")
+    pdf.cell(47.5, 10, invoice_data.get("status", ""), 1, 0, "C")
+    pdf.cell(47.5, 10, f"${invoice_data.get('total', 0):.2f}", 1, 1, "C")
+    
+    pdf.ln(10)
+    
+    # Items table
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(95, 10, "Description", 1, 0, "C")
+    pdf.cell(30, 10, "Quantity", 1, 0, "C")
+    pdf.cell(30, 10, "Unit Price", 1, 0, "C")
+    pdf.cell(35, 10, "Amount", 1, 1, "C")
+    
+    pdf.set_font("Arial", "", 10)
+    items = invoice_data.get("items", [])
+    for item in items:
+        description = item.get("description", "")
+        quantity = item.get("quantity", 0)
+        unit_price = item.get("unit_price", 0)
+        amount = item.get("amount", 0)
+        
+        pdf.cell(95, 10, description, 1, 0)
+        pdf.cell(30, 10, str(quantity), 1, 0, "C")
+        pdf.cell(30, 10, f"${unit_price:.2f}", 1, 0, "C")
+        pdf.cell(35, 10, f"${amount:.2f}", 1, 1, "C")
+    
+    # Totals
+    pdf.ln(5)
+    pdf.cell(125, 10, "", 0, 0)
+    pdf.cell(30, 10, "Subtotal:", 0, 0, "R")
+    pdf.cell(35, 10, f"${invoice_data.get('subtotal', 0):.2f}", 0, 1, "R")
+    
+    pdf.cell(125, 10, "", 0, 0)
+    pdf.cell(30, 10, "Tax:", 0, 0, "R")
+    pdf.cell(35, 10, f"${invoice_data.get('tax_amount', 0):.2f}", 0, 1, "R")
+    
+    if invoice_data.get('discount', 0) > 0:
+        pdf.cell(125, 10, "", 0, 0)
+        pdf.cell(30, 10, "Discount:", 0, 0, "R")
+        pdf.cell(35, 10, f"-${invoice_data.get('discount', 0):.2f}", 0, 1, "R")
+    
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(125, 10, "", 0, 0)
+    pdf.cell(30, 10, "Total:", 0, 0, "R")
+    pdf.cell(35, 10, f"${invoice_data.get('total', 0):.2f}", 0, 1, "R")
+    
+    # Notes
+    if invoice_data.get("notes"):
+        pdf.ln(10)
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(190, 10, "Notes:", 0, 1)
+        pdf.set_font("Arial", "", 10)
+        pdf.multi_cell(190, 5, invoice_data.get("notes", ""))
+    
+    # Footer
+    pdf.ln(10)
+    pdf.set_font("Arial", "I", 8)
+    pdf.cell(190, 5, "Thank you for your business!", 0, 1, "C")
+    
+    return pdf.output(dest="S").encode("latin1")

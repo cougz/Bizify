@@ -9,7 +9,7 @@ python-jose==3.3.0
 passlib==1.7.4
 python-multipart==0.0.6
 email-validator==2.1.0
-weasyprint==60.1
+fpdf==1.7.2
 python-dateutil==2.8.2
 pytest==7.4.3
 httpx==0.25.1
