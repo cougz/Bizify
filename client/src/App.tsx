@@ -17,102 +17,68 @@ import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import Settings from './pages/Settings';
 
-// Protected route component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // In a real app, you would check if the user is authenticated
-  const isAuthenticated = true; // For demo purposes, always authenticated
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
-};
-
 const App: React.FC = () => {
-  // We'll use this state in a real app with actual authentication
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isAuthenticated, setIsAuthenticated] = React.useState(true);
-  
   return (
     <Router>
       <Routes>
-        {/* Auth routes */}
-        <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
-        <Route path="/register" element={<Register />} />
+        {/* Auth routes - redirected to dashboard for demo */}
+        <Route path="/login" element={<Navigate to="/" />} />
+        <Route path="/register" element={<Navigate to="/" />} />
         
-        {/* Protected routes */}
+        {/* Main routes - no authentication required for demo */}
         <Route path="/" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <Dashboard />
+          </MainLayout>
         } />
         
         <Route path="/customers" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Customers />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <Customers />
+          </MainLayout>
         } />
         
         <Route path="/customers/new" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CreateCustomer />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <CreateCustomer />
+          </MainLayout>
         } />
         
         <Route path="/customers/:id" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CustomerDetail />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <CustomerDetail />
+          </MainLayout>
         } />
         
         <Route path="/invoices" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Invoices />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <Invoices />
+          </MainLayout>
         } />
         
         <Route path="/invoices/:id" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <InvoiceDetail />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <InvoiceDetail />
+          </MainLayout>
         } />
         
         {/* Add both routes for creating invoices */}
         <Route path="/invoices/new" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CreateInvoice />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <CreateInvoice />
+          </MainLayout>
         } />
         
         <Route path="/dashboard/invoices/create" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CreateInvoice />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <CreateInvoice />
+          </MainLayout>
         } />
         
         <Route path="/settings" element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Settings />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <Settings />
+          </MainLayout>
         } />
         
         {/* 404 route */}

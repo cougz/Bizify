@@ -39,11 +39,8 @@ const CreateCustomer: React.FC = () => {
     try {
       setLoading(true);
       
-      // In a real app, you would call the API
-      // const response = await customersAPI.create(formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to create the customer
+      await customersAPI.create(formData);
       
       // Redirect to customers list
       navigate('/customers');
