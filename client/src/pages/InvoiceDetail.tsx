@@ -152,19 +152,28 @@ const InvoiceDetail: React.FC = () => {
   const handleDownloadPdf = async () => {
     try {
       setDownloading(true);
-      // In a real app, you would call the API
-      // const response = await invoicesAPI.getPdf(id);
-      // const blob = new Blob([response.data], { type: 'application/pdf' });
-      // const url = window.URL.createObjectURL(blob);
-      // const link = document.createElement('a');
-      // link.href = url;
-      // link.setAttribute('download', `invoice_${invoice?.invoice_number}.pdf`);
-      // document.body.appendChild(link);
-      // link.click();
-      // link.remove();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to get the PDF
+      const response = await invoicesAPI.getPdf(id || '');
+      
+      // Create a blob from the PDF data
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_${invoice?.invoice_number}.pdf`);
+      
+      // Append to the document, click it, and remove it
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up the URL object
+      window.URL.revokeObjectURL(url);
       
       setError('');
     } catch (err) {

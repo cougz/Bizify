@@ -1,110 +1,152 @@
-from fpdf import FPDF
+import io
+from datetime import datetime
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-def generate_pdf(invoice_data):
+def generate_pdf(invoice, settings):
     """
-    Generate a PDF invoice using FPDF
+    Generate a PDF for an invoice
     
     Args:
-        invoice_data: Dictionary containing invoice information
-        
+        invoice: The invoice object with all details
+        settings: The company settings object
+    
     Returns:
-        PDF file content as bytes
+        bytes: The PDF file as bytes
     """
-    pdf = FPDF()
-    pdf.add_page()
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=inch/2,
+        leftMargin=inch/2,
+        topMargin=inch/2,
+        bottomMargin=inch/2
+    )
     
-    # Set up fonts
-    pdf.set_font("Arial", "B", 16)
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='RightAlign',
+        parent=styles['Normal'],
+        alignment=2  # 2 is right alignment
+    ))
     
-    # Header
-    pdf.cell(190, 10, "INVOICE", 0, 1, "C")
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(190, 10, f"Invoice #{invoice_data.get('invoice_number', 'N/A')}", 0, 1, "C")
-    pdf.ln(5)
+    # Create the content for the PDF
+    elements = []
     
-    # Company info
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(95, 10, "From:", 0, 0)
-    pdf.cell(95, 10, "To:", 0, 1)
+    # Add company logo if available
+    # if settings.company_logo:
+    #     logo = Image(settings.company_logo)
+    #     logo.drawHeight = 0.5*inch
+    #     logo.drawWidth = 1.5*inch
+    #     elements.append(logo)
     
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(95, 5, invoice_data.get("company_name", "Your Company"), 0, 0)
-    pdf.cell(95, 5, invoice_data.get("customer_name", "Customer"), 0, 1)
+    # Add invoice header
+    elements.append(Paragraph(f"INVOICE #{invoice.invoice_number}", styles['Heading1']))
+    elements.append(Spacer(1, 0.25*inch))
     
-    pdf.cell(95, 5, invoice_data.get("company_address", ""), 0, 0)
-    pdf.cell(95, 5, invoice_data.get("customer_address", ""), 0, 1)
+    # Add company and customer information
+    company_info = [
+        ["FROM:", "BILL TO:"],
+        [
+            f"{settings.company_name if settings else 'Your Company'}\n" +
+            f"{settings.company_address if settings else '123 Business St'}\n" +
+            f"{settings.company_city if settings else 'San Francisco'}, " +
+            f"{settings.company_state if settings else 'CA'} " +
+            f"{settings.company_zip if settings else '94103'}\n" +
+            f"{settings.company_country if settings else 'USA'}\n" +
+            f"Phone: {settings.company_phone if settings else '(555) 987-6543'}\n" +
+            f"Email: {settings.company_email if settings else 'info@yourcompany.com'}",
+            
+            f"{invoice.customer.name}\n" +
+            f"{invoice.customer.company}\n" +
+            f"{invoice.customer.address}\n" +
+            f"{invoice.customer.city}, {invoice.customer.state} {invoice.customer.zip_code}\n" +
+            f"{invoice.customer.country}\n" +
+            f"Email: {invoice.customer.email}"
+        ]
+    ]
     
-    pdf.cell(95, 5, invoice_data.get("company_email", ""), 0, 0)
-    pdf.cell(95, 5, invoice_data.get("customer_email", ""), 0, 1)
+    company_table = Table(company_info, colWidths=[2.75*inch, 2.75*inch])
+    company_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONT', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('LINEBELOW', (0, 0), (1, 0), 1, colors.black),
+        ('TOPPADDING', (0, 0), (1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 6),
+    ]))
+    elements.append(company_table)
+    elements.append(Spacer(1, 0.25*inch))
     
-    pdf.ln(10)
+    # Add invoice details
+    invoice_details = [
+        ["Invoice Number:", invoice.invoice_number],
+        ["Issue Date:", datetime.fromisoformat(invoice.issue_date).strftime("%B %d, %Y") if isinstance(invoice.issue_date, str) else invoice.issue_date.strftime("%B %d, %Y")],
+        ["Due Date:", datetime.fromisoformat(invoice.due_date).strftime("%B %d, %Y") if isinstance(invoice.due_date, str) else invoice.due_date.strftime("%B %d, %Y")],
+        ["Status:", invoice.status.upper()]
+    ]
     
-    # Invoice details
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(47.5, 10, "Invoice Date", 1, 0, "C")
-    pdf.cell(47.5, 10, "Due Date", 1, 0, "C")
-    pdf.cell(47.5, 10, "Status", 1, 0, "C")
-    pdf.cell(47.5, 10, "Amount Due", 1, 1, "C")
+    details_table = Table(invoice_details, colWidths=[1.5*inch, 4*inch])
+    details_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.lightgrey),
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(details_table)
+    elements.append(Spacer(1, 0.25*inch))
     
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(47.5, 10, invoice_data.get("issue_date", ""), 1, 0, "C")
-    pdf.cell(47.5, 10, invoice_data.get("due_date", ""), 1, 0, "C")
-    pdf.cell(47.5, 10, invoice_data.get("status", ""), 1, 0, "C")
-    pdf.cell(47.5, 10, f"${invoice_data.get('total', 0):.2f}", 1, 1, "C")
+    # Add invoice items
+    items_data = [["Description", "Quantity", "Unit Price", "Amount"]]
+    for item in invoice.items:
+        items_data.append([
+            item.description,
+            str(item.quantity),
+            f"${item.unit_price:.2f}",
+            f"${item.amount:.2f}"
+        ])
     
-    pdf.ln(10)
+    # Add subtotal, tax, and total
+    items_data.append(["", "", "Subtotal:", f"${invoice.subtotal:.2f}"])
+    if invoice.discount > 0:
+        items_data.append(["", "", "Discount:", f"-${invoice.discount:.2f}"])
+    items_data.append(["", "", f"Tax ({invoice.tax_rate}%):", f"${invoice.tax_amount:.2f}"])
+    items_data.append(["", "", "Total:", f"${invoice.total:.2f}"])
     
-    # Items table
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(95, 10, "Description", 1, 0, "C")
-    pdf.cell(30, 10, "Quantity", 1, 0, "C")
-    pdf.cell(30, 10, "Unit Price", 1, 0, "C")
-    pdf.cell(35, 10, "Amount", 1, 1, "C")
+    items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1*inch, 1*inch])
+    items_table.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONT', (2, -3), (3, -1), 'Helvetica-Bold'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, len(invoice.items)), 0.25, colors.black),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('LINEBELOW', (0, len(invoice.items)), (-1, len(invoice.items)), 1, colors.black),
+        ('LINEABOVE', (2, -1), (-1, -1), 1, colors.black),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 0.25*inch))
     
-    pdf.set_font("Arial", "", 10)
-    items = invoice_data.get("items", [])
-    for item in items:
-        description = item.get("description", "")
-        quantity = item.get("quantity", 0)
-        unit_price = item.get("unit_price", 0)
-        amount = item.get("amount", 0)
-        
-        pdf.cell(95, 10, description, 1, 0)
-        pdf.cell(30, 10, str(quantity), 1, 0, "C")
-        pdf.cell(30, 10, f"${unit_price:.2f}", 1, 0, "C")
-        pdf.cell(35, 10, f"${amount:.2f}", 1, 1, "C")
+    # Add notes if available
+    if invoice.notes:
+        elements.append(Paragraph("Notes:", styles['Heading3']))
+        elements.append(Paragraph(invoice.notes, styles['Normal']))
+        elements.append(Spacer(1, 0.25*inch))
     
-    # Totals
-    pdf.ln(5)
-    pdf.cell(125, 10, "", 0, 0)
-    pdf.cell(30, 10, "Subtotal:", 0, 0, "R")
-    pdf.cell(35, 10, f"${invoice_data.get('subtotal', 0):.2f}", 0, 1, "R")
+    # Add footer
+    if settings and settings.invoice_footer:
+        elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
     
-    pdf.cell(125, 10, "", 0, 0)
-    pdf.cell(30, 10, "Tax:", 0, 0, "R")
-    pdf.cell(35, 10, f"${invoice_data.get('tax_amount', 0):.2f}", 0, 1, "R")
+    # Build the PDF
+    doc.build(elements)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
     
-    if invoice_data.get('discount', 0) > 0:
-        pdf.cell(125, 10, "", 0, 0)
-        pdf.cell(30, 10, "Discount:", 0, 0, "R")
-        pdf.cell(35, 10, f"-${invoice_data.get('discount', 0):.2f}", 0, 1, "R")
-    
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(125, 10, "", 0, 0)
-    pdf.cell(30, 10, "Total:", 0, 0, "R")
-    pdf.cell(35, 10, f"${invoice_data.get('total', 0):.2f}", 0, 1, "R")
-    
-    # Notes
-    if invoice_data.get("notes"):
-        pdf.ln(10)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(190, 10, "Notes:", 0, 1)
-        pdf.set_font("Arial", "", 10)
-        pdf.multi_cell(190, 5, invoice_data.get("notes", ""))
-    
-    # Footer
-    pdf.ln(10)
-    pdf.set_font("Arial", "I", 8)
-    pdf.cell(190, 5, "Thank you for your business!", 0, 1, "C")
-    
-    return pdf.output(dest="S").encode("latin1")
+    return pdf_bytes
