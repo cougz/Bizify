@@ -3,72 +3,101 @@ import Card from './Card';
 
 interface StatCardProps {
   title: string;
-  value: string | number;
+  value: string;
   icon?: React.ReactNode;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
+  change?: number;
+  trend?: 'up' | 'down' | 'neutral';
   className?: string;
-  onClick?: () => void;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
   icon,
+  change,
   trend,
   className = '',
-  onClick
 }) => {
-  // Format trend value as percentage
-  const formatTrend = (value: number) => {
-    return `${Math.abs(value).toFixed(1)}%`;
-  };
-
-  // Get trend color based on whether it's positive or negative
-  const getTrendColor = (isPositive: boolean) => {
-    return isPositive ? 'text-green-600' : 'text-red-600';
-  };
-
-  // Get trend icon based on whether it's positive or negative
-  const getTrendIcon = (isPositive: boolean) => {
-    return isPositive ? (
-      <svg className="w-3 h-3 fill-current" viewBox="0 0 12 12">
-        <path d="M6 0l6 6H9v6H3V6H0z" />
-      </svg>
-    ) : (
-      <svg className="w-3 h-3 fill-current" viewBox="0 0 12 12">
-        <path d="M6 12l-6-6h3V0h6v6h3z" />
-      </svg>
-    );
+  // Trend colors and icons
+  const trendConfig = {
+    up: {
+      color: 'text-green-500',
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
+        </svg>
+      ),
+    },
+    down: {
+      color: 'text-red-500',
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
+        </svg>
+      ),
+    },
+    neutral: {
+      color: 'text-gray-500',
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 12h14"
+          />
+        </svg>
+      ),
+    },
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${className} ${onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
-      <div className="flex items-start justify-between">
+    <Card className={`p-6 ${className}`}>
+      <div className="flex justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-800">{value}</p>
-          
-          {trend && (
-            <div className="flex items-center mt-2">
-              <span className={`flex items-center ${getTrendColor(trend.isPositive)}`}>
-                {getTrendIcon(trend.isPositive)}
-                <span className="ml-1 text-xs font-medium">{formatTrend(trend.value)}</span>
+          <p className="text-sm font-medium text-gray-600 truncate">{title}</p>
+          <p className="mt-1 text-3xl font-semibold text-gray-900">{value}</p>
+          {change !== undefined && trend && (
+            <div className="mt-1 flex items-center">
+              <span className={`${trendConfig[trend].color} flex items-center text-sm font-medium`}>
+                {trendConfig[trend].icon}
+                <span className="ml-1">{Math.abs(change)}%</span>
               </span>
-              <span className="text-xs text-gray-500 ml-2">vs last month</span>
+              <span className="ml-2 text-sm text-gray-500">from last month</span>
             </div>
           )}
         </div>
-        
-        {icon && (
-          <div className="p-3 rounded-full bg-gray-100">
-            {icon}
-          </div>
-        )}
+        {icon && <div className="flex items-center justify-center h-12 w-12 rounded-md bg-gray-100">{icon}</div>}
       </div>
-    </div>
+    </Card>
   );
 };
 

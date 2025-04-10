@@ -1,11 +1,7 @@
 /**
- * Utility functions for form validation
- */
-
-/**
  * Validate an email address
  * @param email Email address to validate
- * @returns True if valid, false otherwise
+ * @returns True if the email is valid, false otherwise
  */
 export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,107 +9,119 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Validate a password (min 8 chars, at least one letter and one number)
+ * Validate a password meets minimum requirements
  * @param password Password to validate
- * @returns True if valid, false otherwise
+ * @param minLength Minimum length (default: 8)
+ * @returns True if the password meets requirements, false otherwise
  */
-export const isValidPassword = (password: string): boolean => {
-  // At least 8 characters, at least one letter and one number
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-  return passwordRegex.test(password);
+export const isValidPassword = (password: string, minLength: number = 8): boolean => {
+  if (!password || password.length < minLength) return false;
+  
+  // Check for at least one uppercase letter, one lowercase letter, and one number
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  
+  return hasUppercase && hasLowercase && hasNumber;
 };
 
 /**
  * Validate a phone number
  * @param phone Phone number to validate
- * @returns True if valid, false otherwise
+ * @returns True if the phone number is valid, false otherwise
  */
 export const isValidPhone = (phone: string): boolean => {
-  // Allow various formats like (123) 456-7890, 123-456-7890, 1234567890
-  const phoneRegex = /^(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}$/;
-  return phoneRegex.test(phone);
+  // Remove all non-numeric characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Check if the cleaned phone number has a valid length
+  return cleaned.length >= 10 && cleaned.length <= 15;
 };
 
 /**
  * Validate a URL
  * @param url URL to validate
- * @returns True if valid, false otherwise
+ * @returns True if the URL is valid, false otherwise
  */
 export const isValidUrl = (url: string): boolean => {
   try {
     new URL(url);
     return true;
-  } catch (e) {
+  } catch (err) {
     return false;
   }
 };
 
 /**
- * Validate a zip/postal code (US format)
- * @param zip Zip code to validate
- * @returns True if valid, false otherwise
+ * Validate a credit card number using Luhn algorithm
+ * @param cardNumber Credit card number to validate
+ * @returns True if the credit card number is valid, false otherwise
  */
-export const isValidZip = (zip: string): boolean => {
-  const zipRegex = /^\d{5}(-\d{4})?$/;
-  return zipRegex.test(zip);
+export const isValidCreditCard = (cardNumber: string): boolean => {
+  // Remove all non-numeric characters
+  const cleaned = cardNumber.replace(/\D/g, '');
+  
+  if (cleaned.length < 13 || cleaned.length > 19) return false;
+  
+  // Luhn algorithm
+  let sum = 0;
+  let shouldDouble = false;
+  
+  // Loop through values starting from the rightmost digit
+  for (let i = cleaned.length - 1; i >= 0; i--) {
+    let digit = parseInt(cleaned.charAt(i));
+    
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  
+  return sum % 10 === 0;
 };
 
 /**
- * Validate that a string is not empty
+ * Validate a date is in the future
+ * @param date Date to validate
+ * @returns True if the date is in the future, false otherwise
+ */
+export const isFutureDate = (date: string | Date): boolean => {
+  const dateToCheck = date instanceof Date ? date : new Date(date);
+  const today = new Date();
+  
+  // Reset time to midnight for comparison
+  today.setHours(0, 0, 0, 0);
+  dateToCheck.setHours(0, 0, 0, 0);
+  
+  return dateToCheck > today;
+};
+
+/**
+ * Validate a string is not empty
  * @param value String to validate
- * @returns True if not empty, false otherwise
+ * @returns True if the string is not empty, false otherwise
  */
 export const isNotEmpty = (value: string): boolean => {
-  return value.trim().length > 0;
+  return value !== undefined && value !== null && value.trim() !== '';
 };
 
 /**
- * Validate that a number is positive
+ * Validate a number is positive
  * @param value Number to validate
- * @returns True if positive, false otherwise
+ * @returns True if the number is positive, false otherwise
  */
 export const isPositive = (value: number): boolean => {
   return value > 0;
 };
 
 /**
- * Validate that a number is non-negative
+ * Validate a number is non-negative
  * @param value Number to validate
- * @returns True if non-negative, false otherwise
+ * @returns True if the number is non-negative, false otherwise
  */
 export const isNonNegative = (value: number): boolean => {
   return value >= 0;
-};
-
-/**
- * Validate that a value is within a range
- * @param value Number to validate
- * @param min Minimum value (inclusive)
- * @param max Maximum value (inclusive)
- * @returns True if within range, false otherwise
- */
-export const isInRange = (value: number, min: number, max: number): boolean => {
-  return value >= min && value <= max;
-};
-
-/**
- * Validate a date is in the future
- * @param date Date to validate
- * @returns True if in the future, false otherwise
- */
-export const isFutureDate = (date: Date): boolean => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date >= today;
-};
-
-/**
- * Validate a date is in the past
- * @param date Date to validate
- * @returns True if in the past, false otherwise
- */
-export const isPastDate = (date: Date): boolean => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
 };

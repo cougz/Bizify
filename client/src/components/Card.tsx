@@ -1,22 +1,41 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 
 interface CardProps {
-  children: ReactNode;
-  title?: string;
+  children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  padding?: boolean;
+  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  border?: boolean;
+  rounded?: boolean;
 }
 
-const Card: React.FC<CardProps> = ({ children, title, className = '', onClick }) => {
-  return (
-    <div 
-      className={`bg-white rounded-lg shadow-md p-6 ${className} ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
-    >
-      {title && <h2 className="text-lg font-semibold text-gray-800 mb-4">{title}</h2>}
-      {children}
-    </div>
-  );
+const Card: React.FC<CardProps> = ({
+  children,
+  className = '',
+  padding = false,
+  shadow = 'md',
+  border = true,
+  rounded = true,
+}) => {
+  // Shadow classes
+  const shadowClasses = {
+    none: '',
+    sm: 'shadow-sm',
+    md: 'shadow',
+    lg: 'shadow-lg',
+  };
+
+  // Combine all classes
+  const cardClasses = `
+    bg-white
+    ${padding ? 'p-4' : ''}
+    ${border ? 'border border-gray-200' : ''}
+    ${rounded ? 'rounded-lg' : ''}
+    ${shadowClasses[shadow]}
+    ${className}
+  `;
+
+  return <div className={cardClasses}>{children}</div>;
 };
 
 export default Card;

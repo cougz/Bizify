@@ -464,7 +464,7 @@ def create_settings(db: Session, settings: schemas.SettingsCreate, user_id: int)
     db.refresh(db_settings)
     return db_settings
 
-def update_settings(db: Session, user_id: int, settings: schemas.SettingsUpdate):
+def update_settings(db: Session, settings: schemas.SettingsUpdate, user_id: int):
     db_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).first()
     if db_settings:
         for key, value in settings.dict(exclude_unset=True).items():

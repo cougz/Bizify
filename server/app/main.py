@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -182,6 +182,48 @@ def get_dashboard_data(
     current_user: schemas.User = Depends(get_current_user)
 ):
     return crud.get_dashboard_data(db=db, user_id=current_user.id)
+
+# Settings endpoints
+@app.get("/api/settings", response_model=schemas.Settings)
+def get_settings(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user)
+):
+    settings = crud.get_settings(db=db, user_id=current_user.id)
+    if settings is None:
+        # Create default settings if none exist
+        settings = crud.create_settings(
+            db=db, 
+            settings=schemas.SettingsCreate(
+                company_name="Your Company",
+                company_address="123 Main St",
+                company_city="Your City",
+                company_state="Your State",
+                company_zip="12345",
+                company_country="Your Country",
+                company_phone="(123) 456-7890",
+                company_email="info@yourcompany.com",
+                company_website="www.yourcompany.com",
+                tax_rate=10.0,
+                currency="USD",
+                invoice_prefix="INV-",
+                invoice_footer="Thank you for your business!"
+            ),
+            user_id=current_user.id
+        )
+    return settings
+
+@app.put("/api/settings", response_model=schemas.Settings)
+def update_settings(
+    settings: schemas.SettingsUpdate, 
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user)
+):
+    db_settings = crud.get_settings(db=db, user_id=current_user.id)
+    if db_settings is None:
+        # Create settings if none exist
+        return crud.create_settings(db=db, settings=settings, user_id=current_user.id)
+    return crud.update_settings(db=db, settings=settings, user_id=current_user.id)
 
 if __name__ == "__main__":
     import uvicorn
