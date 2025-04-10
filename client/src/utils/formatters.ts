@@ -1,73 +1,42 @@
 /**
- * Utility functions for formatting data
+ * Format a date string to a more readable format
+ * @param dateString - ISO date string
+ * @returns Formatted date string (e.g., "Jan 15, 2023")
  */
-
-/**
- * Format a date string or Date object to a readable date format
- * @param date Date string or Date object
- * @param options Intl.DateTimeFormatOptions
- * @returns Formatted date string
- */
-export const formatDate = (
-  date: string | Date | null | undefined,
-  options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  }
-): string => {
-  if (!date) return '';
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
   
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  // Check if date is valid
-  if (isNaN(dateObj.getTime())) {
-    return '';
-  }
-  
-  return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date);
 };
 
 /**
- * Format a number as currency
- * @param amount Number to format
- * @param currency Currency code (default: USD)
- * @returns Formatted currency string
+ * Format a currency value
+ * @param value - Number to format as currency
+ * @param currency - Currency code (default: USD)
+ * @returns Formatted currency string (e.g., "$1,234.56")
  */
-export const formatCurrency = (
-  amount: number | null | undefined,
-  currency: string = 'USD'
-): string => {
-  if (amount === null || amount === undefined) return '';
+export const formatCurrency = (value: number, currency: string = 'USD'): string => {
+  if (value === null || value === undefined) return '';
   
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(amount);
+  }).format(value);
 };
 
 /**
- * Format a number with commas
- * @param num Number to format
- * @returns Formatted number string
+ * Format a phone number to a more readable format
+ * @param phone - Phone number string
+ * @returns Formatted phone number (e.g., "(123) 456-7890")
  */
-export const formatNumber = (
-  num: number | null | undefined,
-  options: Intl.NumberFormatOptions = {}
-): string => {
-  if (num === null || num === undefined) return '';
-  
-  return new Intl.NumberFormat('en-US', options).format(num);
-};
-
-/**
- * Format a phone number
- * @param phone Phone number string
- * @returns Formatted phone number
- */
-export const formatPhone = (phone: string | null | undefined): string => {
+export const formatPhone = (phone: string): string => {
   if (!phone) return '';
   
   // Remove all non-numeric characters
@@ -80,34 +49,47 @@ export const formatPhone = (phone: string | null | undefined): string => {
     return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
   }
   
-  // Return original if we can't format it
+  // If not a standard format, return the original
   return phone;
 };
 
 /**
- * Truncate text to a specified length
- * @param text Text to truncate
- * @param length Maximum length
- * @returns Truncated text
+ * Format a number with commas
+ * @param value - Number to format
+ * @returns Formatted number string (e.g., "1,234")
  */
-export const truncateText = (
-  text: string | null | undefined,
-  length: number = 50
-): string => {
+export const formatNumber = (value: number): string => {
+  if (value === null || value === undefined) return '';
+  
+  return new Intl.NumberFormat('en-US').format(value);
+};
+
+/**
+ * Format a percentage value
+ * @param value - Number to format as percentage
+ * @param decimals - Number of decimal places (default: 1)
+ * @returns Formatted percentage string (e.g., "12.5%")
+ */
+export const formatPercent = (value: number, decimals: number = 1): string => {
+  if (value === null || value === undefined) return '';
+  
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value / 100);
+};
+
+/**
+ * Truncate a string if it exceeds a certain length
+ * @param text - String to truncate
+ * @param length - Maximum length (default: 50)
+ * @returns Truncated string with ellipsis if needed
+ */
+export const truncateText = (text: string, length: number = 50): string => {
   if (!text) return '';
   
   if (text.length <= length) return text;
   
-  return `${text.slice(0, length)}...`;
-};
-
-/**
- * Format a status string to title case
- * @param status Status string
- * @returns Formatted status
- */
-export const formatStatus = (status: string | null | undefined): string => {
-  if (!status) return '';
-  
-  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  return text.slice(0, length) + '...';
 };
