@@ -8,18 +8,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     bash \
-    # WeasyPrint dependencies
+    # WeasyPrint dependencies - more comprehensive list
+    libcairo2 \
     libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
     libpangoft2-1.0-0 \
     libharfbuzz0b \
-    libffi-dev \
-    libjpeg-dev \
-    libopenjp2-7-dev \
-    libcairo2 \
-    libgdk-pixbuf2.0-0 \
+    libxml2 \
+    libxslt1.1 \
     libfribidi0 \
     libglib2.0-0 \
-    libpangocairo-1.0-0 \
+    libglib2.0-dev \
+    libgirepository1.0-dev \
+    gir1.2-pango-1.0 \
+    gir1.2-gtk-3.0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
