@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
@@ -29,7 +29,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // For demo purposes
+  // We'll use this state in a real app with actual authentication
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isAuthenticated, setIsAuthenticated] = React.useState(true);
   
   return (
     <Router>
@@ -79,7 +81,16 @@ const App: React.FC = () => {
           </ProtectedRoute>
         } />
         
+        {/* Add both routes for creating invoices */}
         <Route path="/invoices/new" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/dashboard/invoices/create" element={
           <ProtectedRoute>
             <MainLayout>
               <CreateInvoice />

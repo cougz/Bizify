@@ -1,334 +1,242 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { FiPlus, FiSearch, FiDownload, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiDownload, FiEye, FiTrash2 } from 'react-icons/fi';
+import { invoicesAPI } from '../utils/api';
+import Card from '../components/Card';
+import Button from '../components/Button';
+import StatusBadge from '../components/StatusBadge';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 interface Invoice {
   id: string;
-  invoiceNumber: string;
-  customer: {
-    id: string;
-    name: string;
-    company: string;
-  };
-  issueDate: string;
-  dueDate: string;
-  status: 'paid' | 'pending' | 'overdue';
-  amount: number;
+  invoice_number: string;
+  customer_name: string;
+  issue_date: string;
+  due_date: string;
+  total: number;
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
 }
 
 const Invoices: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        // In a real app, this would be an actual API call
-        // For now, we'll simulate the data
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        setLoading(true);
+        // For demo purposes, we'll use mock data
+        // const response = await invoicesAPI.getAll();
+        // setInvoices(response.data);
         
         // Mock data
-        const mockInvoices: Invoice[] = [
+        setInvoices([
           {
             id: '1',
-            invoiceNumber: 'INV-2023-001',
-            customer: {
-              id: '1',
-              name: 'John Doe',
-              company: 'Acme Inc.'
-            },
-            issueDate: '2023-03-01T00:00:00Z',
-            dueDate: '2023-03-31T00:00:00Z',
-            status: 'paid',
-            amount: 1250.00
+            invoice_number: 'INV-001',
+            customer_name: 'Acme Inc',
+            issue_date: '2023-03-01T00:00:00Z',
+            due_date: '2023-03-31T00:00:00Z',
+            total: 1250.00,
+            status: 'paid'
           },
           {
             id: '2',
-            invoiceNumber: 'INV-2023-002',
-            customer: {
-              id: '2',
-              name: 'Jane Smith',
-              company: 'XYZ Corporation'
-            },
-            issueDate: '2023-03-05T00:00:00Z',
-            dueDate: '2023-04-04T00:00:00Z',
-            status: 'pending',
-            amount: 2340.50
+            invoice_number: 'INV-002',
+            customer_name: 'XYZ Corp',
+            issue_date: '2023-03-15T00:00:00Z',
+            due_date: '2023-04-15T00:00:00Z',
+            total: 3750.50,
+            status: 'pending'
           },
           {
             id: '3',
-            invoiceNumber: 'INV-2023-003',
-            customer: {
-              id: '3',
-              name: 'Robert Johnson',
-              company: 'Johnson & Co'
-            },
-            issueDate: '2023-02-15T00:00:00Z',
-            dueDate: '2023-03-17T00:00:00Z',
-            status: 'overdue',
-            amount: 4500.75
+            invoice_number: 'INV-003',
+            customer_name: 'ABC Ltd',
+            issue_date: '2023-02-15T00:00:00Z',
+            due_date: '2023-03-15T00:00:00Z',
+            total: 850.75,
+            status: 'overdue'
           },
           {
             id: '4',
-            invoiceNumber: 'INV-2023-004',
-            customer: {
-              id: '4',
-              name: 'Emily Davis',
-              company: 'Davis Enterprises'
-            },
-            issueDate: '2023-03-10T00:00:00Z',
-            dueDate: '2023-04-09T00:00:00Z',
-            status: 'pending',
-            amount: 1800.25
-          },
-          {
-            id: '5',
-            invoiceNumber: 'INV-2023-005',
-            customer: {
-              id: '5',
-              name: 'Michael Wilson',
-              company: 'Wilson Technologies'
-            },
-            issueDate: '2023-03-12T00:00:00Z',
-            dueDate: '2023-04-11T00:00:00Z',
-            status: 'paid',
-            amount: 3200.00
+            invoice_number: 'INV-004',
+            customer_name: 'Smith & Co',
+            issue_date: '2023-03-20T00:00:00Z',
+            due_date: '2023-04-20T00:00:00Z',
+            total: 1500.00,
+            status: 'draft'
           }
-        ];
+        ]);
         
-        setInvoices(mockInvoices);
-        setFilteredInvoices(mockInvoices);
+        setError('');
       } catch (err) {
-        console.error('Error fetching invoices:', err);
-        setError('Failed to load invoices. Please try again later.');
+        setError('Failed to load invoices');
+        console.error(err);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchInvoices();
   }, []);
 
-  useEffect(() => {
-    let filtered = [...invoices];
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(invoice => invoice.status === statusFilter);
-    }
-    
-    // Apply search filter
-    if (searchTerm.trim() !== '') {
-      filtered = filtered.filter(invoice => 
-        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.customer.company.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    setFilteredInvoices(filtered);
-  }, [searchTerm, statusFilter, invoices]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-success-color';
-      case 'pending':
-        return 'bg-yellow-100 text-warning-color';
-      case 'overdue':
-        return 'bg-red-100 text-danger-color';
-      default:
-        return 'bg-gray-100 text-gray-600';
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this invoice?')) {
+      try {
+        // In a real app, you would call the API
+        // await invoicesAPI.delete(id);
+        
+        // Update local state
+        setInvoices(invoices.filter(invoice => invoice.id !== id));
+      } catch (err) {
+        setError('Failed to delete invoice');
+        console.error(err);
+      }
     }
   };
 
-  if (isLoading) {
+  const handleDownloadPdf = async (id: string) => {
+    try {
+      // In a real app, you would call the API and download the PDF
+      // const response = await invoicesAPI.getPdf(id);
+      // const url = window.URL.createObjectURL(new Blob([response.data]));
+      // const link = document.createElement('a');
+      // link.href = url;
+      // link.setAttribute('download', `invoice-${id}.pdf`);
+      // document.body.appendChild(link);
+      // link.click();
+      // link.remove();
+      
+      // For demo purposes, just show an alert
+      alert(`Downloading PDF for invoice ${id}`);
+    } catch (err) {
+      setError('Failed to download invoice PDF');
+      console.error(err);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="spinner mb-4"></div>
-          <p>Loading invoices...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        {error}
+        <LoadingSpinner size="large" text="Loading invoices..." />
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Invoices</h1>
-        <Link 
-          to="/dashboard/invoices/create" 
-          className="btn btn-primary flex items-center"
-        >
-          <FiPlus className="mr-2" />
-          Create Invoice
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
+        <Link to="/dashboard/invoices/create">
+          <Button variant="primary">
+            <FiPlus className="mr-2" />
+            Create Invoice
+          </Button>
         </Link>
       </div>
-      
-      {/* Search and filter */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-grow">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiSearch className="text-gray-400" />
+
+      {error && <ErrorMessage message={error} onDismiss={() => setError('')} />}
+
+      {invoices.length === 0 ? (
+        <Card>
+          <div className="text-center py-8">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">No invoices</h3>
+            <p className="mt-1 text-sm text-gray-500">Get started by creating a new invoice.</p>
+            <div className="mt-6">
+              <Link to="/dashboard/invoices/create">
+                <Button variant="primary">
+                  <FiPlus className="mr-2" />
+                  Create Invoice
+                </Button>
+              </Link>
             </div>
-            <input
-              type="text"
-              placeholder="Search invoices by number or customer..."
-              className="form-control pl-10"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
           </div>
-          <div className="w-full md:w-48">
-            <select
-              className="form-control"
-              value={statusFilter}
-              onChange={handleStatusFilterChange}
-            >
-              <option value="all">All Statuses</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="overdue">Overdue</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      
-      {/* Invoices table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        </Card>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Invoice
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Issue Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Due Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="relative px-6 py-3">
+                  <span className="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No invoices found matching your search.
+              {invoices.map((invoice) => (
+                <tr key={invoice.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      <Link to={`/invoices/${invoice.id}`} className="hover:text-blue-600">
+                        {invoice.invoice_number}
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{invoice.customer_name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatDate(invoice.issue_date)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatDate(invoice.due_date)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{formatCurrency(invoice.total)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={invoice.status} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <Link to={`/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                        <FiEye />
+                      </Link>
+                      <button
+                        onClick={() => handleDownloadPdf(invoice.id)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        <FiDownload />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(invoice.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                filteredInvoices.map(invoice => (
-                  <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {invoice.invoiceNumber}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {invoice.customer.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {invoice.customer.company}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(invoice.issueDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(invoice.dueDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(invoice.status)}`}>
-                        {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${invoice.amount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <Link 
-                          to={`/dashboard/invoices/${invoice.id}`} 
-                          className="text-primary-color hover:text-blue-800"
-                          title="View"
-                        >
-                          <FiEye size={18} />
-                        </Link>
-                        <button 
-                          className="text-gray-600 hover:text-gray-900"
-                          title="Download PDF"
-                          onClick={() => {
-                            // In a real app, this would download the invoice PDF
-                            alert(`Download PDF for invoice: ${invoice.invoiceNumber}`);
-                          }}
-                        >
-                          <FiDownload size={18} />
-                        </button>
-                        <button 
-                          className="text-red-500 hover:text-red-700"
-                          title="Delete"
-                          onClick={() => {
-                            // In a real app, this would show a confirmation dialog
-                            // and then delete the invoice if confirmed
-                            alert(`Delete invoice: ${invoice.invoiceNumber}`);
-                          }}
-                        >
-                          <FiTrash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
     </div>
   );
 };

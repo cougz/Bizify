@@ -101,9 +101,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <button 
+                type="button"
+                onClick={() => alert('Password reset functionality would be implemented here')}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Forgot your password?
-              </a>
+              </button>
             </div>
           </div>
 
