@@ -26,7 +26,7 @@ chmod +x start.sh
 ./start.sh
 ```
 
-This will start the PostgreSQL database, backend API, and frontend services.
+This will start the PostgreSQL database, backend API, and frontend services. The frontend will be accessible at http://localhost:3000.
 
 ## Creating a User
 
@@ -71,7 +71,7 @@ Bizify includes a dark mode toggle in the top-right corner of the application.
 
 ## Troubleshooting
 
-If you encounter any issues with the frontend not building correctly:
+If you encounter any issues with the application:
 
 1. Stop all containers: `docker compose down`
 2. Remove all containers: `docker compose rm -f`

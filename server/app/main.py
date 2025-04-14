@@ -16,7 +16,7 @@ app = FastAPI(title="Bizify API", description="Business Management API", version
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For a real production app, specify exact origins
+    allow_origins=["*"],  # For security in a real-world scenario, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

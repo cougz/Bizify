@@ -23,3 +23,7 @@ docker rmi bizify-frontend bizify-backend -f 2>/dev/null || true
 
 # Build and start all services
 docker compose up --build
+
+echo ""
+echo "Frontend is running at: http://localhost:3000"
+echo "Backend API is running at: http://localhost:8000"
