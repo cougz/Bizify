@@ -19,8 +19,11 @@ To run the application:
 git clone https://github.com/yourusername/bizify.git
 cd bizify
 
+# Make the start script executable (Unix/Linux/macOS)
+chmod +x start.sh
+
 # Start the application
-docker compose up -d
+./start.sh
 ```
 
 This will start the PostgreSQL database, backend API, and frontend services.
@@ -40,10 +43,10 @@ docker compose run backend python create_user.py
 docker compose down
 ```
 
-Then start the application normally:
+Then start the application:
 
 ```bash
-docker compose up -d
+./start.sh
 ```
 
 ## Adding Customer Data
@@ -65,6 +68,14 @@ To create invoices:
 ## Dark Mode
 
 Bizify includes a dark mode toggle in the top-right corner of the application.
+
+## Troubleshooting
+
+If you encounter any issues with the frontend not building correctly:
+
+1. Stop all containers: `docker compose down`
+2. Remove all containers: `docker compose rm -f`
+3. Rebuild and start: `docker compose up --build`
 
 ## Technologies Used
 
