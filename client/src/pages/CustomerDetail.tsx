@@ -48,6 +48,12 @@ const CustomerDetail: React.FC = () => {
       try {
         setLoading(true);
         
+        if (!id) {
+          setError('Customer ID is missing');
+          setLoading(false);
+          return;
+        }
+        
         // Fetch customer data from API
         const customerResponse = await customersAPI.getById(id);
         setCustomer(customerResponse.data);
@@ -57,7 +63,7 @@ const CustomerDetail: React.FC = () => {
         const invoicesResponse = await invoicesAPI.getAll();
         // Filter invoices for this customer on the client side
         const customerInvoices = invoicesResponse.data.filter(
-          invoice => invoice.customer_id === id
+          (invoice: any) => invoice.customer_id === id
         );
         setInvoices(customerInvoices);
         
@@ -82,6 +88,11 @@ const CustomerDetail: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteConfirm) {
       setDeleteConfirm(true);
+      return;
+    }
+    
+    if (!id) {
+      setError('Customer ID is missing');
       return;
     }
     

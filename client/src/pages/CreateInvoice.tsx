@@ -139,7 +139,7 @@ const CreateInvoice: React.FC = () => {
       setError('');
       
       // Call the API to create the invoice
-      const response = await invoicesAPI.create({
+      await invoicesAPI.create({
         ...invoice,
         items: items.map(({ amount, ...item }) => item) // Remove calculated amount
       });
