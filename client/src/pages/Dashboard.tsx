@@ -6,6 +6,7 @@ import StatCard from '../components/StatCard';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { dashboardAPI } from '../utils/api';
 
 interface DashboardData {
   total_customers: number;
