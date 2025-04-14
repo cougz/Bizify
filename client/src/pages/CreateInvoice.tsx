@@ -5,6 +5,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { customersAPI, invoicesAPI } from '../utils/api';
 
 interface Customer {
   id: string;
@@ -51,32 +52,9 @@ const CreateInvoice: React.FC = () => {
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await customersAPI.getAll();
-        // setCustomers(response.data);
-        
-        // Mock data
-        setCustomers([
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            company: 'Acme Inc'
-          },
-          {
-            id: '2',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            company: 'XYZ Corp'
-          },
-          {
-            id: '3',
-            name: 'Bob Johnson',
-            email: 'bob@example.com',
-            company: 'ABC Ltd'
-          }
-        ]);
-        
+        // Fetch customers from the API
+        const response = await customersAPI.getAll();
+        setCustomers(response.data);
         setError('');
       } catch (err) {
         setError('Failed to load customers');
@@ -160,14 +138,11 @@ const CreateInvoice: React.FC = () => {
       setSubmitting(true);
       setError('');
       
-      // In a real app, you would call the API
-      // const response = await invoicesAPI.create({
-      //   ...invoice,
-      //   items: items.map(({ amount, ...item }) => item) // Remove calculated amount
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to create the invoice
+      const response = await invoicesAPI.create({
+        ...invoice,
+        items: items.map(({ amount, ...item }) => item) // Remove calculated amount
+      });
       
       // Redirect to invoice list
       navigate('/invoices');

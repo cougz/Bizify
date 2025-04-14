@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import StatusBadge from '../components/StatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { customersAPI, invoicesAPI } from '../utils/api';
 
 interface Customer {
   id: string;
@@ -46,52 +47,19 @@ const CustomerDetail: React.FC = () => {
     const fetchCustomerData = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await customersAPI.getById(id);
-        // setCustomer(response.data);
         
-        // Mock data
-        setCustomer({
-          id: id || '1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          phone: '(555) 123-4567',
-          address: '123 Main St',
-          city: 'San Francisco',
-          state: 'CA',
-          zip_code: '94103',
-          country: 'USA',
-          company: 'Acme Inc',
-          notes: 'Important client with multiple ongoing projects.'
-        });
+        // Fetch customer data from API
+        const customerResponse = await customersAPI.getById(id);
+        setCustomer(customerResponse.data);
         
-        // Mock invoices
-        setInvoices([
-          {
-            id: '101',
-            invoice_number: 'INV-2023-001',
-            issue_date: '2023-01-15',
-            due_date: '2023-02-15',
-            status: 'paid',
-            total: 1250.00
-          },
-          {
-            id: '102',
-            invoice_number: 'INV-2023-008',
-            issue_date: '2023-03-10',
-            due_date: '2023-04-10',
-            status: 'pending',
-            total: 850.00
-          },
-          {
-            id: '103',
-            invoice_number: 'INV-2023-012',
-            issue_date: '2023-05-05',
-            due_date: '2023-06-05',
-            status: 'draft',
-            total: 1500.00
-          }
-        ]);
+        // Fetch all invoices from API
+        // In a real app, the backend would filter invoices by customer_id
+        const invoicesResponse = await invoicesAPI.getAll();
+        // Filter invoices for this customer on the client side
+        const customerInvoices = invoicesResponse.data.filter(
+          invoice => invoice.customer_id === id
+        );
+        setInvoices(customerInvoices);
         
         setError('');
       } catch (err) {
@@ -119,11 +87,8 @@ const CustomerDetail: React.FC = () => {
     
     try {
       setDeleting(true);
-      // In a real app, you would call the API
-      // await customersAPI.delete(id);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to delete the customer
+      await customersAPI.delete(id);
       
       // Redirect to customers list
       navigate('/customers');
