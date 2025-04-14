@@ -1,81 +1,71 @@
-# Bizify - Business Management Application
+# Bizify - Invoice Management System
 
-Bizify is a comprehensive business management application that helps you manage customers, invoices, and more.
+Bizify is a comprehensive invoice management system that helps businesses create, manage, and track invoices and customers.
 
 ## Features
 
-- Customer management
-- Invoice creation and tracking
-- Dashboard with business insights
-- PDF invoice generation
-- Dark mode support
+- **Customer Management**: Add, edit, and delete customer information
+- **Invoice Creation**: Create professional invoices with line items, taxes, and discounts
+- **Dashboard**: View key metrics and statistics about your business
+- **PDF Generation**: Generate and download PDF invoices
+- **Dark Mode**: Toggle between light and dark themes
 
-## Setup
+## Getting Started
 
-To run the application:
+### Prerequisites
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/bizify.git
-cd bizify
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-# Start the application
-docker compose up -d
+### Installation and Setup
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/bizify.git
+   cd bizify
+   ```
+
+2. Start the application:
+   ```
+   docker compose up -d
+   ```
+
+   This will start the PostgreSQL database, backend API, and frontend services.
+
+3. Access the application:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+### First-time User Setup
+
+The application comes with a default test user:
+- Email: test@example.com
+- Password: password123
+
+You can also create a new user:
+
+```
+docker compose run backend python create_user.py
 ```
 
-This will start the PostgreSQL database, backend API, and frontend services. The frontend will be accessible at http://localhost:3000 and the backend API at http://localhost:8000.
+## Architecture
 
-## Creating a User
+Bizify consists of three main components:
 
-For first-time setup, you'll need to create a user. We've added a special service for this:
+1. **PostgreSQL Database**: Stores all application data
+2. **Backend API**: Built with FastAPI (Python)
+3. **Frontend**: Built with React, TypeScript, and Tailwind CSS
 
-```bash
-# Run the user creation service
-docker compose --profile setup run create-user
+## Development
 
-# This will prompt you to enter:
-# - Email address
-# - Full name
-# - Password (min 8 characters)
-```
+### Backend Development
 
-The user creation service will create a new user and default settings for your Bizify application.
+The backend is built with FastAPI and SQLAlchemy. The code is located in the `server` directory.
 
-## Adding Customer Data
+### Frontend Development
 
-You can add customer data through the web interface:
-
-1. Navigate to the Customers page
-2. Click on "Add Customer"
-3. Fill in the customer details and save
-
-## Adding Invoice Data
-
-To create invoices:
-
-1. Navigate to the Invoices page
-2. Click on "Create Invoice"
-3. Select a customer, add line items, and save
-
-## Dark Mode
-
-Bizify includes a dark mode toggle in the top-right corner of the application.
-
-## Troubleshooting
-
-If you encounter any issues with the application:
-
-1. Stop all containers: `docker compose down`
-2. Remove all containers: `docker compose rm -f`
-3. Rebuild and start: `docker compose up --build`
-
-## Technologies Used
-
-- Frontend: React, TypeScript, Tailwind CSS
-- Backend: FastAPI, SQLAlchemy
-- Database: PostgreSQL
-- Containerization: Docker, Docker Compose
+The frontend is built with React, TypeScript, and Tailwind CSS. The code is located in the `client` directory.
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.

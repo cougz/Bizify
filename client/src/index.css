@@ -57,6 +57,23 @@ code {
   @apply border-gray-700;
 }
 
+/* Dark mode for sidebar */
+.dark .bg-blue-800 {
+  @apply bg-gray-800;
+}
+
+.dark .border-blue-700 {
+  @apply border-gray-700;
+}
+
+.dark .hover\:bg-blue-700:hover {
+  @apply hover:bg-gray-700;
+}
+
+.dark .bg-blue-700 {
+  @apply bg-gray-700;
+}
+
 /* Theme Switch */
 /* The switch - the box around the slider */
 .switch {

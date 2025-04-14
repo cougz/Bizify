@@ -31,37 +31,36 @@ const Dashboard: React.FC = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await dashboardAPI.getData();
-        // setData(response.data);
-        
-        // Mock data
-        setData({
-          total_customers: 24,
-          total_invoices: 67,
-          total_revenue: 28750.50,
-          revenue_change: 12.5,
-          pending_invoices: 8,
-          paid_invoices: 52,
-          overdue_invoices: 7,
-          revenue_data: [
-            { month: 'Jan', revenue: 3200 },
-            { month: 'Feb', revenue: 4100 },
-            { month: 'Mar', revenue: 3800 },
-            { month: 'Apr', revenue: 4600 },
-            { month: 'May', revenue: 5200 },
-            { month: 'Jun', revenue: 5800 }
-          ],
-          invoice_status_data: {
-            labels: ['Paid', 'Pending', 'Overdue'],
-            data: [52, 8, 7]
-          }
-        });
-        
+        // Fetch real data from the API
+        const response = await dashboardAPI.getData();
+        setData(response.data);
         setError('');
       } catch (err) {
         setError('Failed to load dashboard data');
         console.error(err);
+        
+        // Fallback to empty data structure if API fails
+        setData({
+          total_customers: 0,
+          total_invoices: 0,
+          total_revenue: 0,
+          revenue_change: 0,
+          pending_invoices: 0,
+          paid_invoices: 0,
+          overdue_invoices: 0,
+          revenue_data: [
+            { month: 'Jan', revenue: 0 },
+            { month: 'Feb', revenue: 0 },
+            { month: 'Mar', revenue: 0 },
+            { month: 'Apr', revenue: 0 },
+            { month: 'May', revenue: 0 },
+            { month: 'Jun', revenue: 0 }
+          ],
+          invoice_status_data: {
+            labels: ['Paid', 'Pending', 'Overdue'],
+            data: [0, 0, 0]
+          }
+        });
       } finally {
         setLoading(false);
       }

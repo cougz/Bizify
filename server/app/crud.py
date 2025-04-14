@@ -129,9 +129,14 @@ def get_invoice(db: Session, invoice_id: int, user_id: int):
     ).first()
 
 def get_invoices(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(models.Invoice).filter(
+    # Get invoices that have valid customers
+    invoices = db.query(models.Invoice).join(
+        models.Customer, models.Invoice.customer_id == models.Customer.id
+    ).filter(
         models.Invoice.user_id == user_id
     ).order_by(models.Invoice.created_at.desc()).offset(skip).limit(limit).all()
+    
+    return invoices
 
 def create_invoice(db: Session, invoice: schemas.InvoiceCreate, user_id: int):
     # Get the next invoice number
