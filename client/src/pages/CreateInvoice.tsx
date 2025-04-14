@@ -141,7 +141,12 @@ const CreateInvoice: React.FC = () => {
       // Call the API to create the invoice
       await invoicesAPI.create({
         ...invoice,
-        items: items.map(({ amount, ...item }) => item) // Remove calculated amount
+        customer_id: parseInt(invoice.customer_id, 10), // Convert string to integer
+        items: items.map(({ amount, ...item }) => ({
+          ...item,
+          quantity: parseFloat(item.quantity.toString()), // Ensure quantity is a number
+          unit_price: parseFloat(item.unit_price.toString()) // Ensure unit_price is a number
+        }))
       });
       
       // Redirect to invoice list

@@ -32,28 +32,14 @@ const CreateCustomer: React.FC = () => {
   // Fetch customer data if in edit mode
   useEffect(() => {
     const fetchCustomerData = async () => {
-      if (!isEditMode) return;
+      if (!isEditMode || !id) return;
       
       try {
         setFetchLoading(true);
         
-        // For demo purposes, we'll use mock data
-        // const response = await customersAPI.getById(id);
-        // setFormData(response.data);
-        
-        // Mock data
-        setFormData({
-          name: 'John Doe',
-          email: 'john@example.com',
-          phone: '(555) 123-4567',
-          address: '123 Main St',
-          city: 'San Francisco',
-          state: 'CA',
-          zip_code: '94103',
-          country: 'USA',
-          company: 'Acme Inc',
-          notes: 'Important client with multiple ongoing projects.'
-        });
+        // Fetch customer data from API
+        const response = await customersAPI.getById(id);
+        setFormData(response.data);
         
       } catch (err) {
         setError('Failed to load customer data');
@@ -80,9 +66,9 @@ const CreateCustomer: React.FC = () => {
     try {
       setLoading(true);
       
-      if (isEditMode) {
+      if (isEditMode && id) {
         // Call the API to update the customer
-        await customersAPI.update(id!, formData);
+        await customersAPI.update(id, formData);
         setError('');
       } else {
         // Call the API to create the customer
