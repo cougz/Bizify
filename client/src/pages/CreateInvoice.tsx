@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -24,6 +24,7 @@ interface InvoiceItem {
 
 const CreateInvoice: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -55,6 +56,16 @@ const CreateInvoice: React.FC = () => {
         // Fetch customers from the API
         const response = await customersAPI.getAll();
         setCustomers(response.data);
+        
+        // If a customerId was passed in location state, set it as the selected customer
+        const { state } = location;
+        if (state && state.customerId) {
+          setInvoice(prev => ({
+            ...prev,
+            customer_id: state.customerId
+          }));
+        }
+        
         setError('');
       } catch (err) {
         setError('Failed to load customers');
@@ -65,7 +76,7 @@ const CreateInvoice: React.FC = () => {
     };
 
     fetchCustomers();
-  }, []);
+  }, [location]);
 
   useEffect(() => {
     // Calculate subtotal
@@ -84,7 +95,7 @@ const CreateInvoice: React.FC = () => {
     const { name, value } = e.target;
     setInvoice(prev => ({
       ...prev,
-      [name]: name === 'tax_rate' || name === 'discount' ? parseFloat(value) : value
+      [name]: name === 'tax_rate' || name === 'discount' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -93,7 +104,7 @@ const CreateInvoice: React.FC = () => {
     const newItems = [...items];
     
     if (name === 'quantity' || name === 'unit_price') {
-      const numValue = parseFloat(value);
+      const numValue = parseFloat(value) || 0;
       newItems[index] = {
         ...newItems[index],
         [name]: numValue,
@@ -129,8 +140,13 @@ const CreateInvoice: React.FC = () => {
       return;
     }
     
-    if (items.some(item => !item.description || item.quantity <= 0)) {
-      setError('Please fill in all item details');
+    if (items.some(item => !item.description)) {
+      setError('Please provide a description for all items');
+      return;
+    }
+    
+    if (items.some(item => item.quantity <= 0)) {
+      setError('Quantity must be greater than 0 for all items');
       return;
     }
     
@@ -138,22 +154,36 @@ const CreateInvoice: React.FC = () => {
       setSubmitting(true);
       setError('');
       
-      // Call the API to create the invoice
-      await invoicesAPI.create({
+      // Prepare the payload with proper type conversions
+      const payload = {
         ...invoice,
-        customer_id: parseInt(invoice.customer_id, 10), // Convert string to integer
-        items: items.map(({ amount, ...item }) => ({
-          ...item,
-          quantity: parseFloat(item.quantity.toString()), // Ensure quantity is a number
-          unit_price: parseFloat(item.unit_price.toString()) // Ensure unit_price is a number
+        customer_id: parseInt(invoice.customer_id, 10),
+        tax_rate: typeof invoice.tax_rate === 'string' ? parseFloat(invoice.tax_rate) : invoice.tax_rate,
+        discount: typeof invoice.discount === 'string' ? parseFloat(invoice.discount) : invoice.discount,
+        items: items.map(item => ({
+          description: item.description,
+          quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
+          unit_price: typeof item.unit_price === 'string' ? parseFloat(item.unit_price) : item.unit_price
         }))
-      });
+      };
+      
+      // Log the request payload for debugging
+      console.log('Creating invoice with payload:', payload);
+      
+      // Call the API to create the invoice
+      const response = await invoicesAPI.create(payload);
+      console.log('Invoice created successfully:', response.data);
       
       // Redirect to invoice list
       navigate('/invoices');
-    } catch (err) {
-      setError('Failed to create invoice');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Error creating invoice:', err);
+      // Provide more detailed error message if available
+      if (err.response && err.response.data) {
+        setError(`Failed to create invoice: ${JSON.stringify(err.response.data)}`);
+      } else {
+        setError('Failed to create invoice. Please check your data and try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -190,19 +220,20 @@ const CreateInvoice: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="customer_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer
+                  Customer <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="customer_id"
                   name="customer_id"
                   value={invoice.customer_id}
                   onChange={handleInvoiceChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select a customer</option>
                   {customers.map(customer => (
                     <option key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.company}
+                      {customer.name} {customer.company ? `- ${customer.company}` : ''}
                     </option>
                   ))}
                 </select>
@@ -317,13 +348,13 @@ const CreateInvoice: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
+                      Description <span className="text-red-500">*</span>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
+                      Quantity <span className="text-red-500">*</span>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Unit Price
+                      Unit Price <span className="text-red-500">*</span>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Amount
@@ -343,6 +374,7 @@ const CreateInvoice: React.FC = () => {
                           value={item.description}
                           onChange={(e) => handleItemChange(index, e)}
                           placeholder="Item description"
+                          required
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </td>
@@ -353,7 +385,8 @@ const CreateInvoice: React.FC = () => {
                           value={item.quantity}
                           onChange={(e) => handleItemChange(index, e)}
                           step="0.01"
-                          min="0"
+                          min="0.01"
+                          required
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </td>
@@ -365,6 +398,7 @@ const CreateInvoice: React.FC = () => {
                           onChange={(e) => handleItemChange(index, e)}
                           step="0.01"
                           min="0"
+                          required
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </td>

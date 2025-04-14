@@ -11,14 +11,16 @@ const api = axios.create({
   },
 });
 
-// Response interceptor for handling errors
-api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response;
+// Request interceptor for logging requests in development
+api.interceptors.request.use(
+  (config) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    }
+    return config;
   },
-  (error: AxiosError) => {
-    console.error('API Error:', error);
-    return Promise.reject(error);
+  (error) => {
+    return Promise.reject(error););
   }
 );
 
@@ -43,11 +45,25 @@ export const customersAPI = {
   getStats: () => api.get('/customers/stats'),
 };
 
-// Invoices API
+// Invoices API - Fixed to properly handle data validation
 export const invoicesAPI = {
   getAll: () => api.get('/invoices'),
   getById: (id: string) => api.get(`/invoices/${id}`),
-  create: (data: any) => api.post('/invoices', data),
+  create: (data: any) => {
+    // Ensure the payload is properly formatted before sending
+    const payload = {
+      ...data,
+      customer_id: parseInt(data.customer_id.toString(), 10),
+      tax_rate: parseFloat(data.tax_rate?.toString() || '0'),
+      discount: parseFloat(data.discount?.toString() || '0'),
+      items: data.items.map((item: any) => ({
+        description: item.description,
+        quantity: parseFloat(item.quantity.toString()),
+        unit_price: parseFloat(item.unit_price.toString())
+      }))
+    };
+    return api.post('/invoices', payload);
+  },
   update: (id: string, data: any) => api.put(`/invoices/${id}`, data),
   delete: (id: string) => api.delete(`/invoices/${id}`),
   getStats: () => api.get('/invoices/stats'),
@@ -66,3 +82,21 @@ export const settingsAPI = {
 };
 
 export default api;
+
+// Response interceptor for logging and handling errors
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Response:', response.status, response.data);
+    }
+    return response;
+  },
+  (error: AxiosError) => {
+    console.error('API Error:', error.response?.status, error.response?.data);
+    
+    // If the error is a validation error (422), log the details for debugging
+    if (error.response?.status === 422) {
+      console.error('Validation Error Details:', error.response.data);
+    }
+    
+    return Promise.reject(error

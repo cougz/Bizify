@@ -1,5 +1,6 @@
+# Modified version of the schemas.py file to fix validation issues
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime, date
 from enum import Enum
 
@@ -30,17 +31,68 @@ class CustomerBase(BaseModel):
 
 class InvoiceItemBase(BaseModel):
     description: str
-    quantity: float = Field(gt=0)
-    unit_price: float = Field(ge=0)
+    quantity: Union[float, int, str] = Field(gt=0)  # Accept string or numeric input
+    unit_price: Union[float, int, str] = Field(ge=0)  # Accept string or numeric input
+    
+    # Validators to convert string values to float
+    @validator('quantity', pre=True)
+    def validate_quantity(cls, v):
+        if isinstance(v, str):
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Quantity must be a valid number')
+        if v <= 0:
+            raise ValueError('Quantity must be greater than 0')
+        return v
+    
+    @validator('unit_price', pre=True)
+    def validate_unit_price(cls, v):
+        if isinstance(v, str):
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Unit price must be a valid number')
+        if v < 0:
+            raise ValueError('Unit price must be a non-negative number')
+        return v
 
 class InvoiceBase(BaseModel):
-    customer_id: int
+    customer_id: Union[int, str]  # Accept string or int input
     issue_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     status: Optional[InvoiceStatusEnum] = InvoiceStatusEnum.DRAFT
     notes: Optional[str] = None
-    tax_rate: Optional[float] = 0.0
-    discount: Optional[float] = 0.0
+    tax_rate: Optional[Union[float, str]] = 0.0  # Accept string or float input
+    discount: Optional[Union[float, str]] = 0.0  # Accept string or float input
+    
+    # Validators to convert string values to appropriate types
+    @validator('customer_id', pre=True)
+    def validate_customer_id(cls, v):
+        if isinstance(v, str):
+            try:
+                v = int(v)
+            except ValueError:
+                raise ValueError('Customer ID must be a valid integer')
+        return v
+    
+    @validator('tax_rate', pre=True)
+    def validate_tax_rate(cls, v):
+        if isinstance(v, str) and v.strip():
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Tax rate must be a valid number')
+        return 0.0 if v is None else v
+    
+    @validator('discount', pre=True)
+    def validate_discount(cls, v):
+        if isinstance(v, str) and v.strip():
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Discount must be a valid number')
+        return 0.0 if v is None else v
 
 class SettingsBase(BaseModel):
     company_name: Optional[str] = None
@@ -95,35 +147,74 @@ class CustomerUpdate(BaseModel):
 class InvoiceItemUpdate(BaseModel):
     id: Optional[int] = None
     description: Optional[str] = None
-    quantity: Optional[float] = None
-    unit_price: Optional[float] = None
+    quantity: Optional[Union[float, int, str]] = None
+    unit_price: Optional[Union[float, int, str]] = None
 
     @validator('quantity')
     def quantity_must_be_positive(cls, v):
-        if v is not None and v <= 0:
-            raise ValueError('Quantity must be greater than 0')
+        if v is not None:
+            if isinstance(v, str):
+                try:
+                    v = float(v)
+                except ValueError:
+                    raise ValueError('Quantity must be a valid number')
+            if v <= 0:
+                raise ValueError('Quantity must be greater than 0')
         return v
 
     @validator('unit_price')
     def unit_price_must_be_non_negative(cls, v):
-        if v is not None and v < 0:
-            raise ValueError('Unit price must be non-negative')
+        if v is not None:
+            if isinstance(v, str):
+                try:
+                    v = float(v)
+                except ValueError:
+                    raise ValueError('Unit price must be a valid number')
+            if v < 0:
+                raise ValueError('Unit price must be non-negative')
         return v
 
 class InvoiceUpdate(BaseModel):
-    customer_id: Optional[int] = None
+    customer_id: Optional[Union[int, str]] = None
     issue_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
     status: Optional[InvoiceStatusEnum] = None
     notes: Optional[str] = None
-    tax_rate: Optional[float] = None
-    discount: Optional[float] = None
+    tax_rate: Optional[Union[float, str]] = None
+    discount: Optional[Union[float, str]] = None
     items: Optional[List[InvoiceItemUpdate]] = None
+    
+    @validator('customer_id')
+    def validate_customer_id(cls, v):
+        if v is not None and isinstance(v, str):
+            try:
+                v = int(v)
+            except ValueError:
+                raise ValueError('Customer ID must be a valid integer')
+        return v
+    
+    @validator('tax_rate')
+    def validate_tax_rate(cls, v):
+        if v is not None and isinstance(v, str):
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Tax rate must be a valid number')
+        return v
+    
+    @validator('discount')
+    def validate_discount(cls, v):
+        if v is not None and isinstance(v, str):
+            try:
+                v = float(v)
+            except ValueError:
+                raise ValueError('Discount must be a valid number')
+        return v
 
 class SettingsUpdate(SettingsBase):
     pass
 
-# Response schemas
+# Response schemas (rest of the code remains unchanged)
 class InvoiceItem(InvoiceItemBase):
     id: int
     invoice_id: int
