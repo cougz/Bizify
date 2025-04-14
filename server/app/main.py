@@ -3,7 +3,6 @@ from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-import os
 
 from app.database import engine, get_db
 from app import models, schemas, crud
@@ -14,26 +13,14 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Bizify API", description="Business Management API", version="0.1.0")
 
-# Get environment
-environment = os.getenv("ENVIRONMENT", "development")
-
 # Add CORS middleware
-if environment == "production":
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost", "http://localhost:80"],  # Add your production domains here
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["*"],
-    )
-else:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # In development, allow all origins
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For a real production app, specify exact origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
@@ -52,8 +39,8 @@ def health_check():
 # Helper function to get or create a default user
 def get_default_user(db: Session):
     user = db.query(models.User).first()
-    if not user and environment != "production":
-        # Create a default user if none exists and not in production
+    if not user:
+        # Create a default user if none exists
         user = models.User(
             email="admin@example.com",
             name="Admin User",
@@ -192,40 +179,13 @@ def generate_invoice_pdf(
     invoice_id: int, 
     db: Session = Depends(get_db)
 ):
-    # Get user based on environment
-    if environment == "production":
-        # In production, we should use proper authentication
-        # For now, we'll use the default user function which will return the first user
-        # In a real production app, you would use get_current_user from auth.py
-        user = get_default_user(db)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required"
-            )
-        
-        # Get invoice with user_id check
-        invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
-        if invoice is None:
-            raise HTTPException(status_code=404, detail="Invoice not found")
-    else:
-        # For demo purposes in development, we'll skip user authentication
-        user = db.query(models.User).first()
-        if not user:
-            # Create a default user if none exists
-            user = models.User(
-                email="admin@example.com",
-                name="Admin User",
-                hashed_password="admin"  # This is just for demo
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-        
-        # Get invoice without user_id check in development
-        invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
-        if invoice is None:
-            raise HTTPException(status_code=404, detail="Invoice not found")
+    # Get the user
+    user = get_default_user(db)
+    
+    # Get invoice with user_id check
+    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
     
     # Generate PDF and return it
     pdf_bytes = crud.generate_invoice_pdf(db=db, invoice_id=invoice_id)

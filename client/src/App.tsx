@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
-import AuthLayout from './layouts/AuthLayout';
 
 // Contexts
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -22,144 +20,85 @@ import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import Settings from './pages/Settings';
 
-// Check if we're in production mode
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Protected route component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-  
-  if (!isAuthenticated && isProduction) {
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
-};
-
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router>
+      <Router>
         <Routes>
-          {/* Auth routes */}
-          <Route path="/login" element={
-            isProduction ? (
-              <AuthLayout>
-                <Login />
-              </AuthLayout>
-            ) : (
-              <Navigate to="/" />
-            )
-          } />
+          {/* Auth routes - redirected to dashboard */}
+          <Route path="/login" element={<Navigate to="/" />} />
+          <Route path="/register" element={<Navigate to="/" />} />
           
-          <Route path="/register" element={
-            isProduction ? (
-              <AuthLayout>
-                <Register />
-              </AuthLayout>
-            ) : (
-              <Navigate to="/" />
-            )
-          } />
-          
-          {/* Main routes - protected in production */}
+          {/* Main routes */}
           <Route path="/" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <Dashboard />
+            </MainLayout>
           } />
-        
+          
           <Route path="/customers" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Customers />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <Customers />
+            </MainLayout>
           } />
           
           <Route path="/customers/new" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CreateCustomer />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CreateCustomer />
+            </MainLayout>
           } />
           
           <Route path="/customers/edit/:id" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CreateCustomer />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CreateCustomer />
+            </MainLayout>
           } />
           
           <Route path="/customers/:id" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CustomerDetail />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CustomerDetail />
+            </MainLayout>
           } />
           
           <Route path="/invoices" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Invoices />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <Invoices />
+            </MainLayout>
           } />
           
           <Route path="/invoices/:id" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <InvoiceDetail />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <InvoiceDetail />
+            </MainLayout>
           } />
           
           {/* Add both routes for creating invoices */}
           <Route path="/invoices/new" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CreateInvoice />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
           } />
           
           <Route path="/dashboard/invoices/create" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CreateInvoice />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
           } />
           
           <Route path="/settings" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Settings />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <Settings />
+            </MainLayout>
           } />
-        
+          
           {/* 404 route */}
           <Route path="*" element={
-            <ProtectedRoute>
-              <MainLayout>
-                <NotFound />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <NotFound />
+            </MainLayout>
           } />
         </Routes>
-        </Router>
-      </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 };

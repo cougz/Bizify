@@ -30,14 +30,13 @@ WORKDIR /app
 COPY client/package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the client code
 COPY client/ ./
 
 # Set environment variables
 ENV REACT_APP_API_URL=http://localhost:8000/api
-ENV NODE_ENV=production
 
 # Build the application
 RUN npm run build
