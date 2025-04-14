@@ -57,5 +57,24 @@ services:
       - REACT_APP_API_URL=http://localhost:8000/api
       - WDS_SOCKET_PORT=3000
 
+  # Service for creating a user (runs once and exits)
+  create-user:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: bizify-create-user
+    environment:
+      DATABASE_URL: postgresql://bizify:bizify_password@postgres:5432/bizify
+      SECRET_KEY: your_secret_key_here
+      DOCKER_ENV: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+    command: python create_user.py
+    profiles:
+      - setup
+
 volumes:
   postgres_data:

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { settingsAPI } from '../utils/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';

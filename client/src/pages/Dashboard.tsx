@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPlus, FiUsers, FiFileText, FiDollarSign, FiArrowUp, FiArrowDown } from 'react-icons/fi';
-import { dashboardAPI } from '../utils/api';
+import { FiPlus, FiUsers, FiFileText, FiDollarSign } from 'react-icons/fi';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
 import Button from '../components/Button';

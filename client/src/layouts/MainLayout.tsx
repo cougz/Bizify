@@ -8,9 +8,7 @@ import {
   FiMenu, 
   FiX,
   FiBell,
-  FiUser,
-  FiMoon,
-  FiSun
+  FiUser
 } from 'react-icons/fi';
 import { useTheme } from '../contexts/ThemeContext';
 

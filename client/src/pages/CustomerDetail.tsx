@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
-import { customersAPI, invoicesAPI } from '../utils/api';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import Card from '../components/Card';
 import Button from '../components/Button';

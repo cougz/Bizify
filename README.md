@@ -19,35 +19,27 @@ To run the application:
 git clone https://github.com/yourusername/bizify.git
 cd bizify
 
-# Make the start script executable (Unix/Linux/macOS)
-chmod +x start.sh
-
 # Start the application
-./start.sh
+docker compose up -d
 ```
 
-This will start the PostgreSQL database, backend API, and frontend services. The frontend will be accessible at http://localhost:3000.
+This will start the PostgreSQL database, backend API, and frontend services. The frontend will be accessible at http://localhost:3000 and the backend API at http://localhost:8000.
 
 ## Creating a User
 
-For first-time setup, you'll want to create a user:
+For first-time setup, you'll need to create a user. We've added a special service for this:
 
 ```bash
-# Start just the database
-docker compose up postgres -d
+# Run the user creation service
+docker compose --profile setup run create-user
 
-# Create a user
-docker compose run backend python create_user.py
-
-# Stop the database
-docker compose down
+# This will prompt you to enter:
+# - Email address
+# - Full name
+# - Password (min 8 characters)
 ```
 
-Then start the application:
-
-```bash
-./start.sh
-```
+The user creation service will create a new user and default settings for your Bizify application.
 
 ## Adding Customer Data
 

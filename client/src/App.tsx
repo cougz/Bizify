@@ -15,8 +15,6 @@ import CreateCustomer from './pages/CreateCustomer';
 import Invoices from './pages/Invoices';
 import InvoiceDetail from './pages/InvoiceDetail';
 import CreateInvoice from './pages/CreateInvoice';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import Settings from './pages/Settings';
 
