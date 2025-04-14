@@ -44,8 +44,8 @@ const Customers: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       try {
-        // In a real app, you would call the API
-        // await customersAPI.delete(id);
+        // Call the API to delete the customer
+        await customersAPI.delete(id);
         
         // Update local state
         setCustomers(customers.filter(customer => customer.id !== id));

@@ -46,8 +46,8 @@ const Invoices: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this invoice?')) {
       try {
-        // In a real app, you would call the API
-        // await invoicesAPI.delete(id);
+        // Call the API to delete the invoice
+        await invoicesAPI.delete(id);
         
         // Update local state
         setInvoices(invoices.filter(invoice => invoice.id !== id));
