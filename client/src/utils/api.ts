@@ -20,7 +20,27 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error););
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for logging and handling errors
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Response:', response.status, response.data);
+    }
+    return response;
+  },
+  (error: AxiosError) => {
+    console.error('API Error:', error.response?.status, error.response?.data);
+    
+    // If the error is a validation error (422), log the details for debugging
+    if (error.response?.status === 422) {
+      console.error('Validation Error Details:', error.response.data);
+    }
+    
+    return Promise.reject(error);
   }
 );
 
@@ -82,21 +102,3 @@ export const settingsAPI = {
 };
 
 export default api;
-
-// Response interceptor for logging and handling errors
-api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('API Response:', response.status, response.data);
-    }
-    return response;
-  },
-  (error: AxiosError) => {
-    console.error('API Error:', error.response?.status, error.response?.data);
-    
-    // If the error is a validation error (422), log the details for debugging
-    if (error.response?.status === 422) {
-      console.error('Validation Error Details:', error.response.data);
-    }
-    
-    return Promise.reject(error
