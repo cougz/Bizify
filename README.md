@@ -1,107 +1,82 @@
-# Bizify - Business Management Dashboard
+# Bizify - Business Management Application
 
-Bizify is a comprehensive business management dashboard focused on invoicing and customer management. It provides a clean, professional interface for managing your business operations.
+Bizify is a comprehensive business management application that helps you manage customers, invoices, and more.
 
 ## Features
 
-- **Customer Management:** Create, view, edit, and manage customers with detailed analytics
-- **Invoicing System:** Create and manage invoices with status tracking and PDF generation
-- **Dashboard Analytics:** Visual representation of business metrics and KPIs
-- **User Authentication:** Secure login and registration system
+- Customer management
+- Invoice creation and tracking
+- Dashboard with business insights
+- PDF invoice generation
+- Dark mode support
 
-## Tech Stack
+## Development Setup
 
-### Frontend
-- React with TypeScript
-- Context API for state management
-- React Router for navigation
-- Chart.js for data visualization
-- Responsive design with CSS
+To run the application in development mode:
 
-### Backend
-- Python FastAPI
-- PostgreSQL database
-- SQLAlchemy ORM
-- JWT authentication
-- WeasyPrint for PDF generation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/bizify.git
+cd bizify
 
-### Deployment
-- Docker containerization
-- Docker Compose for local development
-- Kubernetes-ready structure for future scaling
-
-## Getting Started
-
-### Prerequisites
-- Docker and Docker Compose
-
-### Installation
-
-1. Clone the repository
-2. Run the setup script:
-   ```bash
-   ./setup.sh
-   ```
-3. Start the application:
-   ```bash
-   ./run.sh
-   ```
-   
-   To rebuild containers after making changes:
-   ```bash
-   ./run.sh --build
-   ```
-
-4. Access the application:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-
-### Test Credentials
-
-For testing purposes, you can use:
-- Email: test@example.com
-- Password: password123
-
-## Project Structure
-
-```
-bizify/
-├── client/               # React TypeScript frontend
-│   ├── public/           # Static assets
-│   └── src/
-│       ├── components/   # Reusable UI components
-│       ├── contexts/     # React Context providers
-│       ├── layouts/      # Page layouts
-│       ├── pages/        # Page components
-│       └── utils/        # Utility functions
-├── server/               # Python FastAPI backend
-│   ├── app/              # Application code
-│   │   ├── models.py     # Database models
-│   │   ├── schemas.py    # Pydantic schemas
-│   │   ├── crud.py       # CRUD operations
-│   │   ├── auth.py       # Authentication
-│   │   └── main.py       # Main application
-│   └── migrations/       # Database migrations
-├── docker/               # Dockerfiles
-├── k8s/                  # Kubernetes configurations
-└── docker-compose.yml    # Docker Compose configuration
+# Run the application
+./run.sh
 ```
 
-## Development
+This will start the PostgreSQL database, backend API, and frontend services in development mode.
 
-### Making Changes
+## Production Setup
 
-The Docker setup includes volume mounts for both the frontend and backend code, so you can make changes to the code and see them reflected immediately:
+To run the application in production mode:
 
-1. Frontend changes will be automatically detected and the browser will refresh
-2. Backend changes will trigger a reload of the FastAPI server
-3. Database changes persist in a Docker volume
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/bizify.git
+cd bizify
 
-### Database
+# Create a production user (first time only)
+# 1. Start the database service
+docker-compose -f docker-compose.prod.yml up postgres -d
 
-The PostgreSQL database is automatically set up with the required schema and seed data when the containers start. The database data is persisted in a Docker volume, so it will be preserved between container restarts.
+# 2. Run the user creation script
+docker-compose -f docker-compose.prod.yml run backend python create_production_user.py
+
+# 3. Stop the database
+docker-compose -f docker-compose.prod.yml down
+
+# Run the application in production mode
+./run_production.sh
+```
+
+For subsequent runs, you can simply use:
+
+```bash
+./run_production.sh
+```
+
+## Adding Real Customer Data
+
+In production mode, you can add real customer data through the web interface:
+
+1. Navigate to the Customers page
+2. Click on "Add Customer"
+3. Fill in the customer details and save
+
+## Adding Real Invoice Data
+
+To create real invoices:
+
+1. Navigate to the Invoices page
+2. Click on "Create Invoice"
+3. Select a customer, add line items, and save
+
+## Technologies Used
+
+- Frontend: React, TypeScript, Tailwind CSS
+- Backend: FastAPI, SQLAlchemy
+- Database: PostgreSQL
+- Containerization: Docker, Docker Compose
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT
