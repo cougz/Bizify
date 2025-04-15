@@ -241,22 +241,31 @@ def generate_pdf(invoice, settings):
     elements.append(details_table)
     elements.append(Spacer(1, 0.25*inch))
     
+    # Get currency symbol from settings or default to $
+    currency_symbol = {
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'CAD': 'CA$',
+        'AUD': 'A$'
+    }.get(settings.currency if hasattr(settings, 'currency') and settings.currency else 'USD', '$')
+    
     # Add invoice items with modern styling
     items_data = [["Description", "Quantity", "Unit Price", "Amount"]]
     for item in invoice.items:
         items_data.append([
             item.description,
             str(item.quantity),
-            f"${item.unit_price:.2f}",
-            f"${item.amount:.2f}"
+            f"{currency_symbol}{item.unit_price:.2f}",
+            f"{currency_symbol}{item.amount:.2f}"
         ])
     
     # Add subtotal, tax, and total
-    items_data.append(["", "", "Subtotal:", f"${invoice.subtotal:.2f}"])
+    items_data.append(["", "", "Subtotal:", f"{currency_symbol}{invoice.subtotal:.2f}"])
     if invoice.discount > 0:
-        items_data.append(["", "", "Discount:", f"-${invoice.discount:.2f}"])
-    items_data.append(["", "", f"Tax ({invoice.tax_rate}%):", f"${invoice.tax_amount:.2f}"])
-    items_data.append(["", "", "Total:", f"${invoice.total:.2f}"])
+        items_data.append(["", "", "Discount:", f"-{currency_symbol}{invoice.discount:.2f}"])
+    items_data.append(["", "", f"Tax ({invoice.tax_rate}%):", f"{currency_symbol}{invoice.tax_amount:.2f}"])
+    items_data.append(["", "", "Total:", f"{currency_symbol}{invoice.total:.2f}"])
     
     items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1*inch, 1*inch])
     items_table.setStyle(TableStyle([

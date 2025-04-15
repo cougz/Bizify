@@ -51,6 +51,7 @@ const InvoiceDetail: React.FC = () => {
   
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [settings, setSettings] = useState<any>(null);
+  const [currency, setCurrency] = useState<string>('USD');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<boolean>(false);
@@ -70,7 +71,10 @@ const InvoiceDetail: React.FC = () => {
         ]);
         
         setInvoice(invoiceResponse.data);
-        setSettings(settingsResponse.data);
+        const settingsData = settingsResponse.data;
+        setSettings(settingsData);
+        // Set the currency from settings
+        setCurrency(settingsData.currency || 'USD');
         setError('');
       } catch (err) {
         setError('Failed to load invoice details');
@@ -276,10 +280,10 @@ const InvoiceDetail: React.FC = () => {
                     {item.quantity}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
-                    {formatCurrency(item.unit_price)}
+                    {formatCurrency(item.unit_price, currency)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300 text-right">
-                    {formatCurrency(item.amount)}
+                    {formatCurrency(item.amount, currency)}
                   </td>
                 </tr>
               ))}
@@ -290,7 +294,7 @@ const InvoiceDetail: React.FC = () => {
                   Subtotal
                 </td>
                 <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
-                  {formatCurrency(invoice.subtotal)}
+                  {formatCurrency(invoice.subtotal, currency)}
                 </td>
               </tr>
               {invoice.discount > 0 && (
@@ -299,7 +303,7 @@ const InvoiceDetail: React.FC = () => {
                     Discount
                   </td>
                   <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
-                    -{formatCurrency(invoice.discount)}
+                    -{formatCurrency(invoice.discount, currency)}
                   </td>
                 </tr>
               )}
@@ -308,7 +312,7 @@ const InvoiceDetail: React.FC = () => {
                   Tax ({invoice.tax_rate}%)
                 </td>
                 <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
-                  {formatCurrency(invoice.tax_amount)}
+                  {formatCurrency(invoice.tax_amount, currency)}
                 </td>
               </tr>
               <tr className="bg-gray-100 dark:bg-gray-600">
@@ -316,7 +320,7 @@ const InvoiceDetail: React.FC = () => {
                   Total
                 </td>
                 <td className="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(invoice.total)}
+                  {formatCurrency(invoice.total, currency)}
                 </td>
               </tr>
             </tfoot>

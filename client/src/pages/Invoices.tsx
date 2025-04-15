@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPlus, FiDownload, FiEye, FiTrash2 } from 'react-icons/fi';
-import { invoicesAPI } from '../utils/api';
+import { invoicesAPI, settingsAPI } from '../utils/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import StatusBadge from '../components/StatusBadge';
@@ -21,6 +21,7 @@ interface Invoice {
 
 const Invoices: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [currency, setCurrency] = useState<string>('USD');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
@@ -28,9 +29,14 @@ const Invoices: React.FC = () => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        // Fetch invoices from the API
-        const response = await invoicesAPI.getAll();
-        setInvoices(response.data);
+        // Fetch invoices and settings from the API
+        const [invoicesResponse, settingsResponse] = await Promise.all([
+          invoicesAPI.getAll(),
+          settingsAPI.get()
+        ]);
+        setInvoices(invoicesResponse.data);
+        // Set the currency from settings
+        setCurrency(settingsResponse.data.currency || 'USD');
         setError('');
       } catch (err) {
         setError('Failed to load invoices');
@@ -98,7 +104,7 @@ const Invoices: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Invoices</h1>
         <Link to="/dashboard/invoices/create">
           <Button variant="primary">
             <FiPlus className="mr-2" />
@@ -115,8 +121,8 @@ const Invoices: React.FC = () => {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No invoices</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new invoice.</p>
+            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-100">No invoices</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new invoice.</p>
             <div className="mt-6">
               <Link to="/dashboard/invoices/create">
                 <Button variant="primary">
@@ -128,11 +134,11 @@ const Invoices: React.FC = () => {
           </div>
         </Card>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Invoice
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -155,27 +161,27 @@ const Invoices: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-gray-50">
+                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       <Link to={`/invoices/${invoice.id}`} className="hover:text-blue-600">
                         {invoice.invoice_number}
                       </Link>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{invoice.customer_name}</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-300">{invoice.customer_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(invoice.issue_date)}</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-300">{formatDate(invoice.issue_date)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(invoice.due_date)}</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-300">{formatDate(invoice.due_date)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(invoice.total)}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-300">{formatCurrency(invoice.total, currency)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge status={invoice.status} />
