@@ -183,8 +183,8 @@ const InvoiceDetail: React.FC = () => {
       
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Invoice {invoice.invoice_number}</h1>
-          <p className="text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Invoice {invoice.invoice_number}</h1>
+          <p className="text-gray-500 dark:text-gray-400">
             <StatusBadge status={invoice.status} className="mr-2" />
             Issued on {formatDate(invoice.issue_date)} | Due on {formatDate(invoice.due_date)}
           </p>
@@ -223,8 +223,8 @@ const InvoiceDetail: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">From</h2>
-          <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">From</h2>
+          <div className="space-y-1 dark:text-gray-300">
             <p className="font-medium">{settings?.company_name || 'Your Company'}</p>
             <p>{settings?.company_address || '123 Business St'}</p>
             <p>{settings?.company_city || 'San Francisco'}, {settings?.company_state || 'CA'} {settings?.company_zip || '94103'}</p>
@@ -235,8 +235,8 @@ const InvoiceDetail: React.FC = () => {
         </Card>
         
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Bill To</h2>
-          <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Bill To</h2>
+          <div className="space-y-1 dark:text-gray-300">
             <p className="font-medium">{invoice.customer.name}</p>
             <p>{invoice.customer.company}</p>
             <p>{invoice.customer.address}</p>
@@ -249,73 +249,73 @@ const InvoiceDetail: React.FC = () => {
       
       <Card>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Description
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Quantity
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Unit Price
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Amount
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {invoice.items.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                     {item.description}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
                     {item.quantity}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300 text-right">
                     {formatCurrency(item.unit_price)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300 text-right">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-gray-50">
+            <tfoot className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                   Subtotal
                 </td>
-                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
                   {formatCurrency(invoice.subtotal)}
                 </td>
               </tr>
               {invoice.discount > 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                  <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                     Discount
                   </td>
-                  <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                  <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
                     -{formatCurrency(invoice.discount)}
                   </td>
                 </tr>
               )}
               <tr>
-                <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500">
+                <td colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                   Tax ({invoice.tax_rate}%)
                 </td>
-                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                <td className="px-6 py-3 text-right text-sm font-medium text-gray-900 dark:text-gray-300">
                   {formatCurrency(invoice.tax_amount)}
                 </td>
               </tr>
-              <tr className="bg-gray-100">
-                <td colSpan={3} className="px-6 py-3 text-right text-base font-bold text-gray-900">
+              <tr className="bg-gray-100 dark:bg-gray-600">
+                <td colSpan={3} className="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white">
                   Total
                 </td>
-                <td className="px-6 py-3 text-right text-base font-bold text-gray-900">
+                <td className="px-6 py-3 text-right text-base font-bold text-gray-900 dark:text-white">
                   {formatCurrency(invoice.total)}
                 </td>
               </tr>
@@ -326,8 +326,8 @@ const InvoiceDetail: React.FC = () => {
       
       {invoice.notes && (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Notes</h2>
-          <p className="text-gray-700 whitespace-pre-line">{invoice.notes}</p>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Notes</h2>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{invoice.notes}</p>
         </Card>
       )}
     </div>

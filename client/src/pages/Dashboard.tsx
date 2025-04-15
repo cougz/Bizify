@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
         <div className="flex space-x-2">
           <Link to="/customers/new">
             <Button variant="outline">
@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
       {/* Revenue Chart */}
       <Card>
         <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Revenue Overview</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Revenue Overview</h2>
           <div className="h-64">
             {/* In a real app, you would use Chart.js or another charting library */}
             <div className="flex h-48 items-end space-x-2">
@@ -157,7 +157,7 @@ const Dashboard: React.FC = () => {
                       height: `${(item.revenue / Math.max(...data.revenue_data.map(d => d.revenue))) * 100}%` 
                     }}
                   ></div>
-                  <div className="text-xs mt-2 text-gray-600">{item.month}</div>
+                  <div className="text-xs mt-2 text-gray-600 dark:text-gray-400">{item.month}</div>
                 </div>
               ))}
             </div>
@@ -168,19 +168,19 @@ const Dashboard: React.FC = () => {
       {/* Invoice Status */}
       <Card>
         <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Invoice Status</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Invoice Status</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-500">{data.paid_invoices}</div>
-              <div className="text-sm text-gray-600">Paid</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Paid</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-500">{data.pending_invoices}</div>
-              <div className="text-sm text-gray-600">Pending</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Pending</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-500">{data.overdue_invoices}</div>
-              <div className="text-sm text-gray-600">Overdue</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Overdue</div>
             </div>
           </div>
         </div>
@@ -189,29 +189,29 @@ const Dashboard: React.FC = () => {
       {/* Quick Actions */}
       <Card>
         <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/customers" className="block">
-              <div className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <FiUsers className="h-6 w-6 text-blue-500 mb-2" />
-                <h3 className="font-medium">Manage Customers</h3>
-                <p className="text-sm text-gray-600">View and manage your customers</p>
+              <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                <FiUsers className="h-6 w-6 text-blue-500 dark:text-blue-300 mb-2" />
+                <h3 className="font-medium dark:text-gray-100">Manage Customers</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">View and manage your customers</p>
               </div>
             </Link>
             
             <Link to="/invoices" className="block">
-              <div className="p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
-                <FiFileText className="h-6 w-6 text-indigo-500 mb-2" />
-                <h3 className="font-medium">Manage Invoices</h3>
-                <p className="text-sm text-gray-600">View and manage your invoices</p>
+              <div className="p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
+                <FiFileText className="h-6 w-6 text-indigo-500 dark:text-indigo-300 mb-2" />
+                <h3 className="font-medium dark:text-gray-100">Manage Invoices</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">View and manage your invoices</p>
               </div>
             </Link>
             
             <Link to="/settings" className="block">
-              <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <FiDollarSign className="h-6 w-6 text-gray-500 mb-2" />
-                <h3 className="font-medium">Company Settings</h3>
-                <p className="text-sm text-gray-600">Update your company information</p>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <FiDollarSign className="h-6 w-6 text-gray-500 dark:text-gray-400 mb-2" />
+                <h3 className="font-medium dark:text-gray-100">Company Settings</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Update your company information</p>
               </div>
             </Link>
           </div>
