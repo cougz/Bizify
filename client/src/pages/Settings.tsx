@@ -49,36 +49,12 @@ const Settings: React.FC = () => {
       try {
         setLoading(true);
         
-        // Try to get settings from localStorage first
-        const savedSettings = localStorage.getItem('bizify_settings');
-        if (savedSettings) {
-          setSettings(JSON.parse(savedSettings));
-        } else {
-          // For demo purposes, we'll use mock data
-          // const response = await settingsAPI.get();
-          // setSettings(response.data);
-          
-          // Mock data
-          const defaultSettings = {
-            id: 1,
-            company_name: 'Bizify Demo Company',
-            company_address: '123 Business St',
-            company_city: 'San Francisco',
-            company_state: 'CA',
-            company_zip: '94103',
-            company_country: 'USA',
-            company_phone: '(555) 123-4567',
-            company_email: 'info@bizify-demo.com',
-            company_website: 'www.bizify-demo.com',
-            tax_rate: 8.5,
-            currency: 'USD',
-            invoice_prefix: 'INV-',
-            invoice_footer: 'Thank you for your business!'
-          };
-          
-          setSettings(defaultSettings);
-          localStorage.setItem('bizify_settings', JSON.stringify(defaultSettings));
-        }
+        // Import the settingsAPI
+        const { settingsAPI } = await import('../utils/api');
+        
+        // Get settings from the API
+        const response = await settingsAPI.get();
+        setSettings(response.data);
         
         setError('');
       } catch (err) {
@@ -108,14 +84,11 @@ const Settings: React.FC = () => {
       setError('');
       setSuccess('');
       
-      // In a real app, you would call the API
-      // await settingsAPI.update(settings);
+      // Import the settingsAPI
+      const { settingsAPI } = await import('../utils/api');
       
-      // Save to localStorage
-      localStorage.setItem('bizify_settings', JSON.stringify(settings));
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update settings via API
+      await settingsAPI.update(settings);
       
       setSuccess('Settings saved successfully');
     } catch (err) {
