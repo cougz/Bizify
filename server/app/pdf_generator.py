@@ -31,8 +31,8 @@ def create_footer(canvas, doc, settings):
     # Add company info in the footer
     canvas.setFont("Helvetica", 8)
     company_name = settings.company_name if settings and settings.company_name else 'Your Company'
-    company_address = f"{settings.company_address if settings and settings.company_address else '123 Business St'}, {settings.company_city if settings and settings.company_city else 'San Francisco'}, {settings.company_state if settings and settings.company_state else 'CA'} {settings.company_zip if settings and settings.company_zip else '94103'}"
-    company_contact = f"Phone: {settings.company_phone if settings and settings.company_phone else '(555) 987-6543'} | Email: {settings.company_email if settings and settings.company_email else 'info@yourcompany.com'} | {settings.company_website if settings and settings.company_website else 'www.yourcompany.com'}"
+    company_address = f"{settings.company_address if settings and settings.company_address else 'Your Address'}, {settings.company_city if settings and settings.company_city else 'Your City'}, {settings.company_state if settings and settings.company_state else 'Your State'} {settings.company_zip if settings and settings.company_zip else 'Your ZIP'}"
+    company_contact = f"Phone: {settings.company_phone if settings and settings.company_phone else 'Your Phone'} | Email: {settings.company_email if settings and settings.company_email else 'your@email.com'} | {settings.company_website if settings and settings.company_website else 'www.example.com'}"
     
     # Draw company info
     canvas.drawCentredString(doc.width/2 + 0.5*inch, footer_y + 0.1*inch, company_name)
@@ -156,13 +156,13 @@ def generate_pdf(invoice, settings):
         [
             Paragraph(
                 f"<font size='12'><b>{settings.company_name if settings and settings.company_name else 'Your Company'}</b></font><br/>" +
-                f"{settings.company_address if settings and settings.company_address else '123 Business St'}<br/>" +
-                f"{settings.company_city if settings and settings.company_city else 'San Francisco'}, " +
-                f"{settings.company_state if settings and settings.company_state else 'CA'} " +
-                f"{settings.company_zip if settings and settings.company_zip else '94103'}<br/>" +
-                f"{settings.company_country if settings and settings.company_country else 'USA'}<br/>" +
-                f"Phone: {settings.company_phone if settings and settings.company_phone else '(555) 987-6543'}<br/>" +
-                f"Email: {settings.company_email if settings and settings.company_email else 'info@yourcompany.com'}",
+                f"{settings.company_address if settings and settings.company_address else 'Your Address'}<br/>" +
+                f"{settings.company_city if settings and settings.company_city else 'Your City'}, " +
+                f"{settings.company_state if settings and settings.company_state else 'Your State'} " +
+                f"{settings.company_zip if settings and settings.company_zip else 'Your ZIP'}<br/>" +
+                f"{settings.company_country if settings and settings.company_country else 'Your Country'}<br/>" +
+                f"{settings.company_email if settings and settings.company_email else 'your@email.com'}<br/>" +
+                f"Phone: {settings.company_phone if settings and settings.company_phone else 'Your Phone'}",
                 styles['Normal']
             ),
             

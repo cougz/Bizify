@@ -140,11 +140,10 @@ def read_invoices(
 @app.get("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
 def read_invoice(
     invoice_id: int, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
+    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
     if invoice is None:
         raise HTTPException(status_code=404, detail="Invoice not found")
     return invoice
