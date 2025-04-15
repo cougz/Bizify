@@ -113,18 +113,35 @@ def generate_pdf(invoice, settings):
     logo_path = None
     if hasattr(settings, 'company_logo') and settings.company_logo:
         try:
-            # Try to decode base64 image if it's stored that way
-            logo_data = base64.b64decode(settings.company_logo)
-            logo_path = io.BytesIO(logo_data)
-        except:
-            # If not base64, assume it's a file path
-            logo_path = settings.company_logo
+            # Check if it's a data URL (base64 encoded image)
+            if settings.company_logo.startswith('data:image'):
+                # Extract the base64 part
+                header, encoded = settings.company_logo.split(",", 1)
+                try:
+                    # Decode the base64 data
+                    logo_data = base64.b64decode(encoded)
+                    logo_path = io.BytesIO(logo_data)
+                except Exception as e:
+                    print(f"Error decoding logo: {e}")
+                    logo_path = None
+            else:
+                # If not a data URL, assume it's a file path
+                logo_path = settings.company_logo
+        except Exception as e:
+            print(f"Error processing logo: {e}")
+            logo_path = None
     
     if logo_path:
-        logo = Image(logo_path)
-        logo.drawHeight = 0.75*inch
-        logo.drawWidth = 2*inch
-        header_data[0][0] = logo
+        try:
+            logo = Image(logo_path)
+            logo.drawHeight = 0.75*inch
+            logo.drawWidth = 2*inch
+            header_data[0][0] = logo
+        except Exception as e:
+            print(f"Error creating logo image: {e}")
+            # If logo creation fails, fall back to text
+            company_name = settings.company_name if settings and settings.company_name else 'Your Company'
+            header_data[0][0] = Paragraph(f"<font size='16'><b>{company_name}</b></font>", styles['Normal'])
     else:
         # If no logo, use company name as text
         company_name = settings.company_name if settings and settings.company_name else 'Your Company'
