@@ -5,7 +5,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { customersAPI, invoicesAPI } from '../utils/api';
+import { customersAPI, invoicesAPI, settingsAPI } from '../utils/api';
 
 interface Customer {
   id: string;
@@ -32,6 +32,7 @@ const CreateInvoice: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [currency, setCurrency] = useState<string>('USD');
   
   const [invoice, setInvoice] = useState({
     customer_id: '',
@@ -55,9 +56,18 @@ const CreateInvoice: React.FC = () => {
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        // Fetch customers from the API
-        const response = await customersAPI.getAll();
-        setCustomers(response.data);
+        // Fetch customers and settings from the API
+        const [customersResponse, settingsResponse] = await Promise.all([
+          customersAPI.getAll(),
+          settingsAPI.get()
+        ]);
+        
+        setCustomers(customersResponse.data);
+        
+        // Set currency from settings
+        if (settingsResponse.data && settingsResponse.data.currency) {
+          setCurrency(settingsResponse.data.currency);
+        }
         
         // If a customerId was passed in location state, set it as the selected customer
         const { state } = location;
@@ -257,7 +267,7 @@ const CreateInvoice: React.FC = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: currency
     }).format(value);
   };
 
