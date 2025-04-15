@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   FiHome, 
   FiUsers, 
@@ -8,9 +8,11 @@ import {
   FiMenu, 
   FiX,
   FiBell,
-  FiUser
+  FiUser,
+  FiLogOut
 } from 'react-icons/fi';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -19,7 +21,14 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
+  const { user, logout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
   
   const isActive = (path: string) => {
     return location.pathname === path ? 'bg-blue-700' : '';
@@ -124,11 +133,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <FiBell size={20} />
             </button>
             
+            <button 
+              onClick={handleLogout}
+              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              title="Logout"
+            >
+              <FiLogOut size={20} />
+              <span className="ml-1 hidden md:inline-block">Logout</span>
+            </button>
+            
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
                 <FiUser size={16} />
               </div>
-              <span className="ml-2 hidden md:inline-block">Admin User</span>
+              <span className="ml-2 hidden md:inline-block">{user?.name || 'User'}</span>
             </div>
           </div>
         </header>

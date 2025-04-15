@@ -288,7 +288,22 @@ def generate_invoice_pdf(db: Session, invoice_id: int):
     
     # Get user settings - ensure we're getting the latest settings
     db.refresh(invoice)  # Refresh the invoice to ensure we have the latest data
-    settings = db.query(models.Settings).filter(models.Settings.user_id == invoice.user_id).first()
+    
+    # Get all settings for this user
+    all_settings = db.query(models.Settings).filter(models.Settings.user_id == invoice.user_id).all()
+    print(f"Found {len(all_settings)} settings records for user {invoice.user_id}")
+    
+    # Get the most recently updated settings
+    settings = None
+    if all_settings:
+        # Sort by updated_at (newest first)
+        sorted_settings = sorted(all_settings, 
+                                key=lambda s: s.updated_at if s.updated_at else s.created_at, 
+                                reverse=True)
+        settings = sorted_settings[0]
+        print(f"Using settings id={settings.id}, company_name={settings.company_name}")
+    else:
+        print(f"No settings found for user {invoice.user_id}")
     
     if settings:
         # Refresh settings to ensure we have the latest data
