@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import axios from 'axios';
+import { authAPI } from '../utils/api';
 
 interface User {
   id: string;
@@ -33,18 +34,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initAuth = async () => {
       if (token) {
         try {
-          // Set the auth token in axios defaults
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          // Fetch user data
-          const response = await axios.get('/api/users/me');
+          // Fetch user data using the authAPI
+          const response = await authAPI.getCurrentUser();
           setUser(response.data);
         } catch (error) {
           console.error('Failed to fetch user data:', error);
           // If token is invalid, clear it
           localStorage.removeItem('token');
           setToken(null);
-          delete axios.defaults.headers.common['Authorization'];
         }
       }
       setIsLoading(false);
@@ -56,15 +53,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { access_token, user: userData } = response.data;
+      const response = await authAPI.login(email, password);
+      const { access_token } = response.data;
       
       localStorage.setItem('token', access_token);
       setToken(access_token);
-      setUser(userData);
       
-      // Set the auth token in axios defaults
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      // Fetch user data
+      const userResponse = await authAPI.getCurrentUser();
+      setUser(userResponse.data);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -83,15 +80,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password });
-      const { access_token, user: userData } = response.data;
+      // Register the user
+      const response = await authAPI.register(name, email, password);
       
-      localStorage.setItem('token', access_token);
-      setToken(access_token);
-      setUser(userData);
-      
-      // Set the auth token in axios defaults
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      // Login with the new credentials
+      await login(email, password);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

@@ -15,7 +15,7 @@ class InvoiceStatusEnum(str, Enum):
 # Base schemas
 class UserBase(BaseModel):
     email: EmailStr
-    name: str
+    name: Optional[str] = "User"
 
 class CustomerBase(BaseModel):
     name: str

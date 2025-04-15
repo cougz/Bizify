@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import axios from 'axios';
+import { authAPI } from './utils/api';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -47,7 +47,7 @@ const AppRoutes: React.FC = () => {
     const checkFirstTimeSetup = async () => {
       try {
         // Check if there are any users in the system
-        const response = await axios.get('/api/auth/check-setup');
+        const response = await authAPI.checkSetup();
         setIsFirstTimeSetup(response.data.isFirstTimeSetup);
       } catch (error) {
         console.error('Error checking first time setup:', error);

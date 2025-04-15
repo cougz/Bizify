@@ -52,13 +52,20 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  login: (email: string, password: string) => 
-    api.post('/auth/token', { username: email, password }, {
+  login: (email: string, password: string) => {
+    // Create form data for OAuth2 password flow
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+    
+    return api.post('/auth/token', formData.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }),
+    });
+  },
   register: (name: string, email: string, password: string) => 
     api.post('/auth/register', { name, email, password }),
   getCurrentUser: () => api.get('/auth/me'),
+  checkSetup: () => api.get('/auth/check-setup'),
 };
 
 // Customers API
