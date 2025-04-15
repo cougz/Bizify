@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -25,6 +25,8 @@ interface InvoiceItem {
 const CreateInvoice: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = !!id;
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -38,7 +40,7 @@ const CreateInvoice: React.FC = () => {
     status: 'draft',
     notes: '',
     tax_rate: 0,
-    discount: 0
+    discount_percent: 0
   });
   
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -78,6 +80,50 @@ const CreateInvoice: React.FC = () => {
     fetchCustomers();
   }, [location]);
 
+  // Fetch invoice data when in edit mode
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      if (isEditMode && id) {
+        try {
+          setLoading(true);
+          const response = await invoicesAPI.getById(id);
+          const invoiceData = response.data;
+          
+          // Set invoice data
+          setInvoice({
+            customer_id: invoiceData.customer_id.toString(),
+            issue_date: invoiceData.issue_date.split('T')[0],
+            due_date: invoiceData.due_date.split('T')[0],
+            status: invoiceData.status,
+            notes: invoiceData.notes || '',
+            tax_rate: invoiceData.tax_rate,
+            discount_percent: invoiceData.discount_percent || 0
+          });
+          
+          // Set invoice items
+          if (invoiceData.items && invoiceData.items.length > 0) {
+            setItems(invoiceData.items.map((item: any) => ({
+              id: item.id,
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              amount: item.amount
+            })));
+          }
+          
+          setError('');
+        } catch (err) {
+          setError('Failed to load invoice data');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchInvoiceData();
+  }, [isEditMode, id]);
+
   useEffect(() => {
     // Calculate subtotal
     const newSubtotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
@@ -87,15 +133,18 @@ const CreateInvoice: React.FC = () => {
     const newTaxAmount = newSubtotal * (invoice.tax_rate / 100);
     setTaxAmount(newTaxAmount);
     
+    // Calculate discount amount (percentage-based)
+    const discountAmount = newSubtotal * (invoice.discount_percent / 100);
+    
     // Calculate total
-    setTotal(newSubtotal - invoice.discount + newTaxAmount);
-  }, [items, invoice.tax_rate, invoice.discount]);
+    setTotal(newSubtotal - discountAmount + newTaxAmount);
+  }, [items, invoice.tax_rate, invoice.discount_percent]);
 
   const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInvoice(prev => ({
       ...prev,
-      [name]: name === 'tax_rate' || name === 'discount' ? parseFloat(value) || 0 : value
+      [name]: name === 'tax_rate' || name === 'discount_percent' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -159,30 +208,38 @@ const CreateInvoice: React.FC = () => {
         ...invoice,
         customer_id: parseInt(invoice.customer_id, 10),
         tax_rate: typeof invoice.tax_rate === 'string' ? parseFloat(invoice.tax_rate) : invoice.tax_rate,
-        discount: typeof invoice.discount === 'string' ? parseFloat(invoice.discount) : invoice.discount,
+        discount_percent: typeof invoice.discount_percent === 'string' ? parseFloat(invoice.discount_percent) : invoice.discount_percent,
         items: items.map(item => ({
+          id: item.id, // Include item ID for updates
           description: item.description,
           quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
           unit_price: typeof item.unit_price === 'string' ? parseFloat(item.unit_price) : item.unit_price
         }))
       };
       
-      // Log the request payload for debugging
-      console.log('Creating invoice with payload:', payload);
+      let response;
       
-      // Call the API to create the invoice
-      const response = await invoicesAPI.create(payload);
-      console.log('Invoice created successfully:', response.data);
+      if (isEditMode && id) {
+        // Update existing invoice
+        console.log('Updating invoice with payload:', payload);
+        response = await invoicesAPI.update(id, payload);
+        console.log('Invoice updated successfully:', response.data);
+      } else {
+        // Create new invoice
+        console.log('Creating invoice with payload:', payload);
+        response = await invoicesAPI.create(payload);
+        console.log('Invoice created successfully:', response.data);
+      }
       
       // Redirect to invoice list
       navigate('/invoices');
     } catch (err: any) {
-      console.error('Error creating invoice:', err);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} invoice:`, err);
       // Provide more detailed error message if available
       if (err.response && err.response.data) {
-        setError(`Failed to create invoice: ${JSON.stringify(err.response.data)}`);
+        setError(`Failed to ${isEditMode ? 'update' : 'create'} invoice: ${JSON.stringify(err.response.data)}`);
       } else {
-        setError('Failed to create invoice. Please check your data and try again.');
+        setError(`Failed to ${isEditMode ? 'update' : 'create'} invoice. Please check your data and try again.`);
       }
     } finally {
       setSubmitting(false);
@@ -207,7 +264,7 @@ const CreateInvoice: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Create Invoice</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{isEditMode ? 'Edit Invoice' : 'Create Invoice'}</h1>
       </div>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError('')} />}
@@ -301,14 +358,14 @@ const CreateInvoice: React.FC = () => {
               </div>
               
               <div>
-                <label htmlFor="discount" className="block text-sm font-medium text-gray-700 mb-1">
-                  Discount Amount
+                <label htmlFor="discount_percent" className="block text-sm font-medium text-gray-700 mb-1">
+                  Discount (%)
                 </label>
                 <input
                   type="number"
-                  id="discount"
-                  name="discount"
-                  value={invoice.discount}
+                  id="discount_percent"
+                  name="discount_percent"
+                  value={invoice.discount_percent}
                   onChange={handleInvoiceChange}
                   step="0.01"
                   min="0"
@@ -432,8 +489,8 @@ const CreateInvoice: React.FC = () => {
                   <span className="text-sm font-medium text-gray-900">{formatCurrency(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Discount:</span>
-                  <span className="text-sm font-medium text-gray-900">-{formatCurrency(invoice.discount)}</span>
+                  <span className="text-sm text-gray-600">Discount ({invoice.discount_percent}%):</span>
+                  <span className="text-sm font-medium text-gray-900">-{formatCurrency(subtotal * invoice.discount_percent / 100)}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-base font-medium text-gray-900">Total:</span>
@@ -451,7 +508,7 @@ const CreateInvoice: React.FC = () => {
             loading={submitting}
             disabled={submitting}
           >
-            Create Invoice
+            {isEditMode ? 'Update Invoice' : 'Create Invoice'}
           </Button>
         </div>
       </form>

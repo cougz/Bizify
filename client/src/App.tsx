@@ -83,6 +83,12 @@ const App: React.FC = () => {
             </MainLayout>
           } />
           
+          <Route path="/invoices/edit/:id" element={
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
+          } />
+          
           <Route path="/dashboard/invoices/create" element={
             <MainLayout>
               <CreateInvoice />
