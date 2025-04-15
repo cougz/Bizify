@@ -134,8 +134,21 @@ def generate_pdf(invoice, settings):
     if logo_path:
         try:
             logo = Image(logo_path)
-            logo.drawHeight = 0.75*inch
-            logo.drawWidth = 2*inch
+            # Set a maximum width or height
+            max_width = 2*inch
+            max_height = 0.75*inch
+            
+            # Calculate scaling factors for width and height
+            width_scale = max_width / logo.imageWidth
+            height_scale = max_height / logo.imageHeight
+            
+            # Use the smaller scaling factor to ensure the image fits within bounds
+            scale = min(width_scale, height_scale)
+            
+            # Apply the scaling factor to both dimensions to maintain aspect ratio
+            logo.drawWidth = logo.imageWidth * scale
+            logo.drawHeight = logo.imageHeight * scale
+            
             header_data[0][0] = logo
         except Exception as e:
             print(f"Error creating logo image: {e}")
