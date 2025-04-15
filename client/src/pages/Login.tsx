@@ -2,38 +2,28 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     
     try {
-      // In a real app, you would call an API here
-      // For demo purposes, we'll just simulate a successful login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Call the onLogin callback to update auth state
-      onLogin();
+      // Call the login function from AuthContext
+      await login(email, password);
       
       // Redirect to dashboard
       navigate('/');
-    } catch (err) {
-      setError('Invalid email or password');
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Invalid email or password');
     }
   };
   
@@ -116,8 +106,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               type="submit"
               variant="primary"
               className="w-full flex justify-center"
-              loading={loading}
-              disabled={loading}
+              loading={isLoading}
+              disabled={isLoading}
             >
               <FiLogIn className="mr-2" />
               Sign in

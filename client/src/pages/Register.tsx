@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiUserPlus } from 'react-icons/fi';
 import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
 
-const Register: React.FC = () => {
+interface RegisterProps {
+  isFirstTimeSetup?: boolean;
+}
+
+const Register: React.FC<RegisterProps> = ({ isFirstTimeSetup = false }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,20 +27,16 @@ const Register: React.FC = () => {
       return;
     }
     
-    setLoading(true);
     setError('');
     
     try {
-      // In a real app, you would call an API here
-      // For demo purposes, we'll just simulate a successful registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the register function from AuthContext
+      await register(name, email, password);
       
-      // Redirect to login page
-      navigate('/login');
-    } catch (err) {
-      setError('Failed to create account');
-    } finally {
-      setLoading(false);
+      // Redirect to dashboard if first time setup, otherwise to login
+      navigate(isFirstTimeSetup ? '/' : '/login');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to create account');
     }
   };
   
@@ -126,8 +127,8 @@ const Register: React.FC = () => {
               type="submit"
               variant="primary"
               className="w-full flex justify-center"
-              loading={loading}
-              disabled={loading}
+              loading={isLoading}
+              disabled={isLoading}
             >
               <FiUserPlus className="mr-2" />
               Create Account

@@ -122,3 +122,11 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
 @auth_router.get("/me", response_model=schemas.User)
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@auth_router.get("/check-setup")
+async def check_first_time_setup(db: Session = Depends(get_db)):
+    """
+    Check if this is a first-time setup (no users in the system)
+    """
+    user_count = db.query(models.User).count()
+    return {"isFirstTimeSetup": user_count == 0}

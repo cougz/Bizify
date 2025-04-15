@@ -182,13 +182,11 @@ def delete_invoice(
 @app.get("/api/invoices/{invoice_id}/pdf")
 def generate_invoice_pdf(
     invoice_id: int, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get the user
-    user = get_default_user(db)
-    
     # Get invoice with user_id check
-    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
+    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
     if invoice is None:
         raise HTTPException(status_code=404, detail="Invoice not found")
     
@@ -223,11 +221,10 @@ def get_dashboard_data(
 # Settings endpoints
 @app.get("/api/settings", response_model=schemas.Settings)
 def get_settings(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    settings = crud.get_settings(db=db, user_id=user.id)
+    settings = crud.get_settings(db=db, user_id=current_user.id)
     if settings is None:
         # Create default settings if none exist
         settings = crud.create_settings(
@@ -247,22 +244,21 @@ def get_settings(
                 invoice_prefix="INV-",
                 invoice_footer="Thank you for your business!"
             ),
-            user_id=user.id
+            user_id=current_user.id
         )
     return settings
 
 @app.put("/api/settings", response_model=schemas.Settings)
 def update_settings(
     settings: schemas.SettingsUpdate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    db_settings = crud.get_settings(db=db, user_id=user.id)
+    db_settings = crud.get_settings(db=db, user_id=current_user.id)
     if db_settings is None:
         # Create settings if none exist
-        return crud.create_settings(db=db, settings=settings, user_id=user.id)
-    return crud.update_settings(db=db, settings=settings, user_id=user.id)
+        return crud.create_settings(db=db, settings=settings, user_id=current_user.id)
+    return crud.update_settings(db=db, settings=settings, user_id=current_user.id)
 
 if __name__ == "__main__":
     import uvicorn

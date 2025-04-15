@@ -11,9 +11,15 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for logging requests in development
+// Request interceptor for adding auth token and logging requests in development
 api.interceptors.request.use(
   (config) => {
+    // Add auth token to request if available
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     if (process.env.NODE_ENV === 'development') {
       console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
     }
