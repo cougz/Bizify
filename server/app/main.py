@@ -54,31 +54,35 @@ def get_default_user(db: Session):
 @app.post("/api/customers", response_model=schemas.Customer)
 def create_customer(
     customer: schemas.CustomerCreate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    return crud.create_customer(db=db, customer=customer, user_id=user.id)
+    return crud.create_customer(db=db, customer=customer, user_id=current_user.id)
 
 @app.get("/api/customers", response_model=List[schemas.Customer])
 def read_customers(
     skip: int = 0, 
     limit: int = 100, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    customers = crud.get_customers(db, user_id=user.id, skip=skip, limit=limit)
+    customers = crud.get_customers(db, user_id=current_user.id, skip=skip, limit=limit)
     return customers
+
+@app.get("/api/customers/stats", response_model=schemas.CustomerStats)
+def get_customer_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.get_customer_stats(db=db, user_id=current_user.id)
 
 @app.get("/api/customers/{customer_id}", response_model=schemas.Customer)
 def read_customer(
     customer_id: int, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    customer = crud.get_customer(db, customer_id=customer_id, user_id=user.id)
+    customer = crud.get_customer(db, customer_id=customer_id, user_id=current_user.id)
     if customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
     return customer
@@ -87,11 +91,10 @@ def read_customer(
 def update_customer(
     customer_id: int, 
     customer: schemas.CustomerUpdate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    db_customer = crud.get_customer(db, customer_id=customer_id, user_id=user.id)
+    db_customer = crud.get_customer(db, customer_id=customer_id, user_id=current_user.id)
     if db_customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
     return crud.update_customer(db=db, customer_id=customer_id, customer=customer)
@@ -99,84 +102,39 @@ def update_customer(
 @app.delete("/api/customers/{customer_id}", response_model=schemas.Customer)
 def delete_customer(
     customer_id: int, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    db_customer = crud.get_customer(db, customer_id=customer_id, user_id=user.id)
+    db_customer = crud.get_customer(db, customer_id=customer_id, user_id=current_user.id)
     if db_customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
     return crud.delete_customer(db=db, customer_id=customer_id)
-
-@app.get("/api/customers/stats", response_model=schemas.CustomerStats)
-def get_customer_stats(
-    db: Session = Depends(get_db)
-):
-    # Get default user
-    user = get_default_user(db)
-    return crud.get_customer_stats(db=db, user_id=user.id)
 
 # Invoice endpoints
 @app.post("/api/invoices", response_model=schemas.Invoice)
 def create_invoice(
     invoice: schemas.InvoiceCreate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    return crud.create_invoice(db=db, invoice=invoice, user_id=user.id)
+    return crud.create_invoice(db=db, invoice=invoice, user_id=current_user.id)
 
 @app.get("/api/invoices", response_model=List[schemas.Invoice])
 def read_invoices(
     skip: int = 0, 
     limit: int = 100, 
-    db: Session = Depends(get_db)
-):
-    # Get default user
-    user = get_default_user(db)
-    invoices = crud.get_invoices(db, user_id=user.id, skip=skip, limit=limit)
-    return invoices
-
-@app.get("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
-def read_invoice(
-    invoice_id: int, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
-    if invoice is None:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    return invoice
+    invoices = crud.get_invoices(db, user_id=current_user.id, skip=skip, limit=limit)
+    return invoices
 
-@app.put("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
-def update_invoice(
-    invoice_id: int, 
-    invoice: schemas.InvoiceUpdate, 
-    db: Session = Depends(get_db)
+@app.get("/api/invoices/stats", response_model=schemas.InvoiceStats)
+def get_invoice_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
-    if db_invoice is None:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    return crud.update_invoice(db=db, invoice_id=invoice_id, invoice=invoice)
-
-@app.delete("/api/invoices/{invoice_id}")
-def delete_invoice(
-    invoice_id: int, 
-    db: Session = Depends(get_db)
-):
-    # Get default user
-    user = get_default_user(db)
-    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
-    if db_invoice is None:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    
-    # Delete the invoice
-    result = crud.delete_invoice(db=db, invoice_id=invoice_id)
-    
-    # Return a simple success message instead of the deleted invoice
-    return {"status": "success", "message": f"Invoice {invoice_id} deleted successfully"}
+    return crud.get_invoice_stats(db=db, user_id=current_user.id)
 
 @app.get("/api/invoices/{invoice_id}/pdf")
 def generate_invoice_pdf(
@@ -200,22 +158,52 @@ def generate_invoice_pdf(
         }
     )
 
-@app.get("/api/invoices/stats", response_model=schemas.InvoiceStats)
-def get_invoice_stats(
-    db: Session = Depends(get_db)
+@app.get("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
+def read_invoice(
+    invoice_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    return crud.get_invoice_stats(db=db, user_id=user.id)
+    invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return invoice
+
+@app.put("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
+def update_invoice(
+    invoice_id: int, 
+    invoice: schemas.InvoiceUpdate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    if db_invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return crud.update_invoice(db=db, invoice_id=invoice_id, invoice=invoice)
+
+@app.delete("/api/invoices/{invoice_id}")
+def delete_invoice(
+    invoice_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    if db_invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    # Delete the invoice
+    result = crud.delete_invoice(db=db, invoice_id=invoice_id)
+    
+    # Return a simple success message instead of the deleted invoice
+    return {"status": "success", "message": f"Invoice {invoice_id} deleted successfully"}
 
 # Dashboard endpoints
 @app.get("/api/dashboard", response_model=schemas.DashboardData)
 def get_dashboard_data(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Get default user
-    user = get_default_user(db)
-    return crud.get_dashboard_data(db=db, user_id=user.id)
+    return crud.get_dashboard_data(db=db, user_id=current_user.id)
 
 # Settings endpoints
 @app.get("/api/settings", response_model=schemas.Settings)
