@@ -65,17 +65,27 @@ export const customersAPI = {
   getStats: () => api.get('/customers/stats'),
 };
 
-// Invoices API - Fixed to properly handle data validation
+// Invoices API - Fixed to properly handle data validation and date formats
 export const invoicesAPI = {
   getAll: () => api.get('/invoices'),
   getById: (id: string) => api.get(`/invoices/${id}`),
   create: (data: any) => {
+    // Format dates to ISO format with time component
+    const formatDateToISO = (dateStr: string) => {
+      if (!dateStr) return null;
+      // Add time component (T00:00:00) to make it a valid ISO datetime
+      return `${dateStr}T00:00:00`;
+    };
+    
     // Ensure the payload is properly formatted before sending
     const payload = {
       ...data,
       customer_id: parseInt(data.customer_id.toString(), 10),
       tax_rate: parseFloat(data.tax_rate?.toString() || '0'),
       discount: parseFloat(data.discount?.toString() || '0'),
+      // Format dates to include time component
+      issue_date: formatDateToISO(data.issue_date),
+      due_date: formatDateToISO(data.due_date),
       items: data.items.map((item: any) => ({
         description: item.description,
         quantity: parseFloat(item.quantity.toString()),
@@ -84,7 +94,24 @@ export const invoicesAPI = {
     };
     return api.post('/invoices', payload);
   },
-  update: (id: string, data: any) => api.put(`/invoices/${id}`, data),
+  update: (id: string, data: any) => {
+    // Format dates to ISO format with time component if they exist
+    const formatDateToISO = (dateStr: string) => {
+      if (!dateStr) return null;
+      // Add time component (T00:00:00) to make it a valid ISO datetime
+      return `${dateStr}T00:00:00`;
+    };
+    
+    // Only transform the data if it contains date fields
+    const payload = {
+      ...data,
+      // Format dates to include time component if they exist
+      issue_date: data.issue_date ? formatDateToISO(data.issue_date) : undefined,
+      due_date: data.due_date ? formatDateToISO(data.due_date) : undefined,
+    };
+    
+    return api.put(`/invoices/${id}`, payload);
+  },
   delete: (id: string) => api.delete(`/invoices/${id}`),
   getStats: () => api.get('/invoices/stats'),
   getPdf: (id: string) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),

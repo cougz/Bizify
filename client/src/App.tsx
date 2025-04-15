@@ -70,8 +70,14 @@ const App: React.FC = () => {
             </MainLayout>
           } />
           
-          {/* Add both routes for creating invoices */}
+          {/* Add all routes for creating invoices */}
           <Route path="/invoices/new" element={
+            <MainLayout>
+              <CreateInvoice />
+            </MainLayout>
+          } />
+          
+          <Route path="/invoices/create" element={
             <MainLayout>
               <CreateInvoice />
             </MainLayout>
