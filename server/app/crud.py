@@ -486,7 +486,22 @@ def get_dashboard_data(db: Session, user_id: int):
 
 # Settings CRUD operations
 def get_settings(db: Session, user_id: int):
-    return db.query(models.Settings).filter(models.Settings.user_id == user_id).first()
+    # Debug: Print all settings records for this user
+    all_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).all()
+    print(f"Found {len(all_settings)} settings records for user {user_id}")
+    for i, s in enumerate(all_settings):
+        print(f"Settings {i+1}: id={s.id}, company_name={s.company_name}, updated_at={s.updated_at}")
+    
+    # Get the most recently updated settings
+    settings = db.query(models.Settings).filter(
+        models.Settings.user_id == user_id
+    ).order_by(models.Settings.updated_at.desc()).first()
+    
+    # If no settings found, fall back to any settings for this user
+    if not settings:
+        settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).first()
+    
+    return settings
 
 def create_settings(db: Session, settings: schemas.SettingsCreate, user_id: int):
     db_settings = models.Settings(**settings.dict(), user_id=user_id)
@@ -496,10 +511,40 @@ def create_settings(db: Session, settings: schemas.SettingsCreate, user_id: int)
     return db_settings
 
 def update_settings(db: Session, settings: schemas.SettingsUpdate, user_id: int):
-    db_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).first()
+    # Get all settings for this user
+    all_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).all()
+    print(f"Updating settings for user {user_id}, found {len(all_settings)} settings records")
+    
+    # If there are multiple settings records, keep only the most recently updated one
+    if len(all_settings) > 1:
+        print(f"Multiple settings found for user {user_id}, cleaning up...")
+        # Sort by updated_at (newest first)
+        sorted_settings = sorted(all_settings, key=lambda s: s.updated_at if s.updated_at else s.created_at, reverse=True)
+        
+        # Keep the first one (most recent) and delete the rest
+        for s in sorted_settings[1:]:
+            print(f"Deleting duplicate settings record id={s.id}, company_name={s.company_name}")
+            db.delete(s)
+        
+        db.commit()
+        db_settings = sorted_settings[0]
+    else:
+        # Get the single settings record
+        db_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).first()
+    
+    # Update the settings
     if db_settings:
+        print(f"Updating settings id={db_settings.id}, company_name={db_settings.company_name} -> {settings.company_name}")
         for key, value in settings.dict(exclude_unset=True).items():
             setattr(db_settings, key, value)
         db.commit()
         db.refresh(db_settings)
+    else:
+        # Create new settings if none exist
+        print(f"No settings found for user {user_id}, creating new settings")
+        db_settings = models.Settings(**settings.dict(), user_id=user_id)
+        db.add(db_settings)
+        db.commit()
+        db.refresh(db_settings)
+    
     return db_settings

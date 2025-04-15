@@ -21,11 +21,18 @@ def create_footer(canvas, doc, settings):
     canvas.setStrokeColor(colors.lightgrey)
     canvas.line(0.5*inch, footer_y + 0.25*inch, doc.width + 0.5*inch, footer_y + 0.25*inch)
     
+    # Debug: Print settings to verify they're being used correctly
+    print("PDF Footer - Using settings:", {
+        "company_name": settings.company_name if settings else "No settings found",
+        "company_address": settings.company_address if settings else "No address",
+        "company_email": settings.company_email if settings else "No email"
+    })
+    
     # Add company info in the footer
     canvas.setFont("Helvetica", 8)
-    company_name = settings.company_name if settings else 'Your Company'
-    company_address = f"{settings.company_address if settings else '123 Business St'}, {settings.company_city if settings else 'San Francisco'}, {settings.company_state if settings else 'CA'} {settings.company_zip if settings else '94103'}"
-    company_contact = f"Phone: {settings.company_phone if settings else '(555) 987-6543'} | Email: {settings.company_email if settings else 'info@yourcompany.com'} | {settings.company_website if settings else 'www.yourcompany.com'}"
+    company_name = settings.company_name if settings and settings.company_name else 'Your Company'
+    company_address = f"{settings.company_address if settings and settings.company_address else '123 Business St'}, {settings.company_city if settings and settings.company_city else 'San Francisco'}, {settings.company_state if settings and settings.company_state else 'CA'} {settings.company_zip if settings and settings.company_zip else '94103'}"
+    company_contact = f"Phone: {settings.company_phone if settings and settings.company_phone else '(555) 987-6543'} | Email: {settings.company_email if settings and settings.company_email else 'info@yourcompany.com'} | {settings.company_website if settings and settings.company_website else 'www.yourcompany.com'}"
     
     # Draw company info
     canvas.drawCentredString(doc.width/2 + 0.5*inch, footer_y + 0.1*inch, company_name)
@@ -120,7 +127,7 @@ def generate_pdf(invoice, settings):
         header_data[0][0] = logo
     else:
         # If no logo, use company name as text
-        company_name = settings.company_name if settings else 'Your Company'
+        company_name = settings.company_name if settings and settings.company_name else 'Your Company'
         header_data[0][0] = Paragraph(f"<font size='16'><b>{company_name}</b></font>", styles['Normal'])
     
     # Add invoice title
@@ -148,14 +155,14 @@ def generate_pdf(invoice, settings):
          Paragraph("<font color='#2c3e50'><b>BILL TO</b></font>", styles['Normal'])],
         [
             Paragraph(
-                f"<font size='12'><b>{settings.company_name if settings else 'Your Company'}</b></font><br/>" +
-                f"{settings.company_address if settings else '123 Business St'}<br/>" +
-                f"{settings.company_city if settings else 'San Francisco'}, " +
-                f"{settings.company_state if settings else 'CA'} " +
-                f"{settings.company_zip if settings else '94103'}<br/>" +
-                f"{settings.company_country if settings else 'USA'}<br/>" +
-                f"Phone: {settings.company_phone if settings else '(555) 987-6543'}<br/>" +
-                f"Email: {settings.company_email if settings else 'info@yourcompany.com'}",
+                f"<font size='12'><b>{settings.company_name if settings and settings.company_name else 'Your Company'}</b></font><br/>" +
+                f"{settings.company_address if settings and settings.company_address else '123 Business St'}<br/>" +
+                f"{settings.company_city if settings and settings.company_city else 'San Francisco'}, " +
+                f"{settings.company_state if settings and settings.company_state else 'CA'} " +
+                f"{settings.company_zip if settings and settings.company_zip else '94103'}<br/>" +
+                f"{settings.company_country if settings and settings.company_country else 'USA'}<br/>" +
+                f"Phone: {settings.company_phone if settings and settings.company_phone else '(555) 987-6543'}<br/>" +
+                f"Email: {settings.company_email if settings and settings.company_email else 'info@yourcompany.com'}",
                 styles['Normal']
             ),
             
