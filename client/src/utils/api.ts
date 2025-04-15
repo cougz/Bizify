@@ -58,14 +58,29 @@ export const authAPI = {
     formData.append('username', email);
     formData.append('password', password);
     
-    return api.post('/auth/token', formData.toString(), {
+    console.log('Logging in user:', { email });
+    return axios.post(`${API_URL}/auth/token`, formData.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
   },
-  register: (name: string, email: string, password: string) => 
-    api.post('/auth/register', { name, email, password }),
-  getCurrentUser: () => api.get('/auth/me'),
-  checkSetup: () => api.get('/auth/check-setup'),
+  register: (name: string, email: string, password: string) => {
+    console.log('Registering user:', { name, email, password });
+    // Make sure we're using the full API URL
+    return axios.post(`${API_URL}/auth/register`, { name, email, password }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  },
+  getCurrentUser: () => {
+    const token = localStorage.getItem('token');
+    return axios.get(`${API_URL}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
+  checkSetup: () => axios.get(`${API_URL}/auth/check-setup`),
 };
 
 // Customers API
