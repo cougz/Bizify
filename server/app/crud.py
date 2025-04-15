@@ -260,11 +260,25 @@ def update_invoice(db: Session, invoice_id: int, invoice: schemas.InvoiceUpdate)
     return db_invoice
 
 def delete_invoice(db: Session, invoice_id: int):
+    # Get the invoice with eager loading of customer to avoid DetachedInstanceError
     db_invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
+    
     if db_invoice:
+        # Store basic info before deletion for return value
+        invoice_info = {
+            "id": db_invoice.id,
+            "invoice_number": db_invoice.invoice_number,
+            "status": db_invoice.status
+        }
+        
+        # Delete the invoice
         db.delete(db_invoice)
         db.commit()
-    return db_invoice
+        
+        # Return basic info instead of the deleted object
+        return invoice_info
+    
+    return None
 
 def generate_invoice_pdf(db: Session, invoice_id: int):
     # Get invoice with related data

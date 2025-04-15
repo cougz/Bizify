@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiDownload, FiMail } from 'react-icons/fi';
-import { invoicesAPI } from '../utils/api';
+import { invoicesAPI, settingsAPI } from '../utils/api';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -50,6 +50,7 @@ const InvoiceDetail: React.FC = () => {
   const navigate = useNavigate();
   
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<boolean>(false);
@@ -58,55 +59,18 @@ const InvoiceDetail: React.FC = () => {
   const [sending, setSending] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchInvoiceData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        // For demo purposes, we'll use mock data
-        // const response = await invoicesAPI.getById(id);
-        // setInvoice(response.data);
         
-        // Mock data
-        setInvoice({
-          id: id || '1',
-          invoice_number: 'INV-2023-001',
-          customer: {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            company: 'Acme Inc',
-            address: '123 Main St',
-            city: 'San Francisco',
-            state: 'CA',
-            zip_code: '94103',
-            country: 'USA'
-          },
-          issue_date: '2023-01-15',
-          due_date: '2023-02-15',
-          status: 'paid',
-          notes: 'Thank you for your business!',
-          subtotal: 1000.00,
-          tax_rate: 10,
-          tax_amount: 100.00,
-          discount: 50.00,
-          total: 1050.00,
-          items: [
-            {
-              id: '1',
-              description: 'Web Design Services',
-              quantity: 10,
-              unit_price: 75.00,
-              amount: 750.00
-            },
-            {
-              id: '2',
-              description: 'Hosting (Monthly)',
-              quantity: 1,
-              unit_price: 250.00,
-              amount: 250.00
-            }
-          ]
-        });
+        // Fetch both invoice and settings data
+        const [invoiceResponse, settingsResponse] = await Promise.all([
+          invoicesAPI.getById(id || ''),
+          settingsAPI.get()
+        ]);
         
+        setInvoice(invoiceResponse.data);
+        setSettings(settingsResponse.data);
         setError('');
       } catch (err) {
         setError('Failed to load invoice details');
@@ -117,7 +81,7 @@ const InvoiceDetail: React.FC = () => {
     };
 
     if (id) {
-      fetchInvoiceData();
+      fetchData();
     }
   }, [id]);
 
@@ -133,11 +97,8 @@ const InvoiceDetail: React.FC = () => {
     
     try {
       setDeleting(true);
-      // In a real app, you would call the API
-      // await invoicesAPI.delete(id);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the API to delete the invoice
+      await invoicesAPI.delete(id || '');
       
       // Redirect to invoices list
       navigate('/invoices');
@@ -264,12 +225,12 @@ const InvoiceDetail: React.FC = () => {
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">From</h2>
           <div className="space-y-1">
-            <p className="font-medium">Your Company</p>
-            <p>123 Business St</p>
-            <p>San Francisco, CA 94103</p>
-            <p>United States</p>
-            <p className="mt-2">info@yourcompany.com</p>
-            <p>(555) 987-6543</p>
+            <p className="font-medium">{settings?.company_name || 'Your Company'}</p>
+            <p>{settings?.company_address || '123 Business St'}</p>
+            <p>{settings?.company_city || 'San Francisco'}, {settings?.company_state || 'CA'} {settings?.company_zip || '94103'}</p>
+            <p>{settings?.company_country || 'United States'}</p>
+            <p className="mt-2">{settings?.company_email || 'info@yourcompany.com'}</p>
+            <p>{settings?.company_phone || '(555) 987-6543'}</p>
           </div>
         </Card>
         
