@@ -105,12 +105,21 @@ export const invoicesAPI = {
       return `${dateStr}T00:00:00`;
     };
     
+    // Calculate discount from discount_percent if present
+    let discount;
+    if (data.discount_percent !== undefined) {
+      // If we have both subtotal and discount_percent, calculate the absolute discount
+      const subtotal = data.items?.reduce((sum: number, item: any) => 
+        sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0) || 0;
+      discount = subtotal * (parseFloat(data.discount_percent) / 100);
+    }
+    
     // Ensure the payload is properly formatted before sending
     const payload = {
       ...data,
       customer_id: parseInt(data.customer_id.toString(), 10),
       tax_rate: parseFloat(data.tax_rate?.toString() || '0'),
-      discount: parseFloat(data.discount?.toString() || '0'),
+      discount: discount !== undefined ? discount : parseFloat(data.discount?.toString() || '0'),
       // Format dates to include time component
       issue_date: formatDateToISO(data.issue_date),
       due_date: formatDateToISO(data.due_date),
@@ -120,6 +129,12 @@ export const invoicesAPI = {
         unit_price: parseFloat(item.unit_price.toString())
       }))
     };
+    
+    // Remove discount_percent as it's not expected by the backend
+    if (payload.discount_percent !== undefined) {
+      delete payload.discount_percent;
+    }
+    
     return api.post('/invoices', payload);
   },
   update: (id: string, data: any) => {
@@ -130,13 +145,29 @@ export const invoicesAPI = {
       return `${dateStr}T00:00:00`;
     };
     
-    // Only transform the data if it contains date fields
+    // Calculate discount from discount_percent if present
+    let discount;
+    if (data.discount_percent !== undefined) {
+      // If we have both subtotal and discount_percent, calculate the absolute discount
+      const subtotal = data.items?.reduce((sum: number, item: any) => 
+        sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0) || 0;
+      discount = subtotal * (parseFloat(data.discount_percent) / 100);
+    }
+    
+    // Transform the data for the backend
     const payload = {
       ...data,
       // Format dates to include time component if they exist
       issue_date: data.issue_date ? formatDateToISO(data.issue_date) : undefined,
       due_date: data.due_date ? formatDateToISO(data.due_date) : undefined,
+      // Convert discount_percent to discount if present
+      discount: discount !== undefined ? discount : data.discount,
     };
+    
+    // Remove discount_percent as it's not expected by the backend
+    if (payload.discount_percent !== undefined) {
+      delete payload.discount_percent;
+    }
     
     return api.put(`/invoices/${id}`, payload);
   },
