@@ -134,9 +134,9 @@ def generate_pdf(invoice, settings):
     if logo_path:
         try:
             logo = Image(logo_path)
-            # Set a maximum width or height
-            max_width = 2*inch
-            max_height = 0.75*inch
+            # Set a maximum width or height (increased for larger logo display)
+            max_width = 3*inch
+            max_height = 1.5*inch
             
             # Calculate scaling factors for width and height
             width_scale = max_width / logo.imageWidth
