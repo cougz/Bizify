@@ -27,9 +27,9 @@ const Card: React.FC<CardProps> = ({
 
   // Combine all classes
   const cardClasses = `
-    bg-white
+    bg-white dark:bg-gray-800
     ${padding ? 'p-4' : ''}
-    ${border ? 'border border-gray-200' : ''}
+    ${border ? 'border border-gray-200 dark:border-gray-700' : ''}
     ${rounded ? 'rounded-lg' : ''}
     ${shadowClasses[shadow]}
     ${className}

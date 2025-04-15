@@ -132,7 +132,7 @@ const CustomerDetail: React.FC = () => {
       {error && <ErrorMessage message={error} onDismiss={() => setError('')} />}
       
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">{customer.name}</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{customer.name}</h1>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={handleEdit}>
             <FiEdit2 className="mr-2" />
@@ -151,48 +151,48 @@ const CustomerDetail: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Contact Information</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Contact Information</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-gray-500">Email</p>
-              <p className="mt-1">{customer.email}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
+              <p className="mt-1 dark:text-gray-300">{customer.email}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Phone</p>
-              <p className="mt-1">{customer.phone}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</p>
+              <p className="mt-1 dark:text-gray-300">{customer.phone}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Company</p>
-              <p className="mt-1">{customer.company}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Company</p>
+              <p className="mt-1 dark:text-gray-300">{customer.company}</p>
             </div>
           </div>
         </Card>
         
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Address</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Address</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-gray-500">Street</p>
-              <p className="mt-1">{customer.address}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Street</p>
+              <p className="mt-1 dark:text-gray-300">{customer.address}</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">City</p>
-                <p className="mt-1">{customer.city}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">City</p>
+                <p className="mt-1 dark:text-gray-300">{customer.city}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">State/Province</p>
-                <p className="mt-1">{customer.state}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">State/Province</p>
+                <p className="mt-1 dark:text-gray-300">{customer.state}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">ZIP/Postal Code</p>
-                <p className="mt-1">{customer.zip_code}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">ZIP/Postal Code</p>
+                <p className="mt-1 dark:text-gray-300">{customer.zip_code}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Country</p>
-                <p className="mt-1">{customer.country}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Country</p>
+                <p className="mt-1 dark:text-gray-300">{customer.country}</p>
               </div>
             </div>
           </div>
@@ -201,13 +201,13 @@ const CustomerDetail: React.FC = () => {
       
       {customer.notes && (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Notes</h2>
-          <p className="text-gray-700 whitespace-pre-line">{customer.notes}</p>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Notes</h2>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{customer.notes}</p>
         </Card>
       )}
       
       <div className="flex justify-between items-center mt-8">
-        <h2 className="text-xl font-semibold text-gray-800">Invoices</h2>
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Invoices</h2>
         <Button variant="primary" onClick={handleCreateInvoice}>
           <FiFileText className="mr-2" />
           Create Invoice
@@ -216,8 +216,8 @@ const CustomerDetail: React.FC = () => {
       
       {invoices.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Invoice #
@@ -239,23 +239,23 @@ const CustomerDetail: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-gray-50">
+                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{invoice.invoice_number}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.invoice_number}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{formatDate(invoice.issue_date)}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(invoice.issue_date)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{formatDate(invoice.due_date)}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(invoice.due_date)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge status={invoice.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(invoice.total)}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(invoice.total)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button 
@@ -273,7 +273,7 @@ const CustomerDetail: React.FC = () => {
         </div>
       ) : (
         <Card className="p-6 text-center">
-          <p className="text-gray-500">No invoices found for this customer.</p>
+          <p className="text-gray-500 dark:text-gray-400">No invoices found for this customer.</p>
           <Button variant="outline" className="mt-4" onClick={handleCreateInvoice}>
             Create First Invoice
           </Button>
