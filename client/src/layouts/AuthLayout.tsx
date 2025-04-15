@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import React, { useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const AuthLayout: React.FC = () => {
+interface AuthLayoutProps {
+  children: ReactNode;
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -31,7 +35,7 @@ const AuthLayout: React.FC = () => {
           <p className="text-gray-600 mt-2">Business Management Dashboard</p>
         </div>
         
-        <Outlet />
+        {children}
       </div>
     </div>
   );
