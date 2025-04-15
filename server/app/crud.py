@@ -281,13 +281,25 @@ def delete_invoice(db: Session, invoice_id: int):
     return None
 
 def generate_invoice_pdf(db: Session, invoice_id: int):
-    # Get invoice with related data
+    # Get invoice with related data and eager load the customer relationship
     invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
     if not invoice:
         return None
     
-    # Get user settings
+    # Get user settings - ensure we're getting the latest settings
+    db.refresh(invoice)  # Refresh the invoice to ensure we have the latest data
     settings = db.query(models.Settings).filter(models.Settings.user_id == invoice.user_id).first()
+    
+    if settings:
+        # Refresh settings to ensure we have the latest data
+        db.refresh(settings)
+    
+    # Debug: Print settings to verify they're being loaded correctly
+    print("PDF Generation - Settings:", {
+        "company_name": settings.company_name if settings else "No settings found",
+        "company_address": settings.company_address if settings else "No address",
+        "company_email": settings.company_email if settings else "No email"
+    })
     
     # Generate PDF
     pdf_bytes = generate_pdf(invoice, settings)

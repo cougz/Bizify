@@ -162,7 +162,7 @@ def update_invoice(
         raise HTTPException(status_code=404, detail="Invoice not found")
     return crud.update_invoice(db=db, invoice_id=invoice_id, invoice=invoice)
 
-@app.delete("/api/invoices/{invoice_id}", response_model=schemas.Invoice)
+@app.delete("/api/invoices/{invoice_id}")
 def delete_invoice(
     invoice_id: int, 
     db: Session = Depends(get_db)
@@ -172,7 +172,12 @@ def delete_invoice(
     db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=user.id)
     if db_invoice is None:
         raise HTTPException(status_code=404, detail="Invoice not found")
-    return crud.delete_invoice(db=db, invoice_id=invoice_id)
+    
+    # Delete the invoice
+    result = crud.delete_invoice(db=db, invoice_id=invoice_id)
+    
+    # Return a simple success message instead of the deleted invoice
+    return {"status": "success", "message": f"Invoice {invoice_id} deleted successfully"}
 
 @app.get("/api/invoices/{invoice_id}/pdf")
 def generate_invoice_pdf(

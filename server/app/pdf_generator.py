@@ -135,6 +135,13 @@ def generate_pdf(invoice, settings):
     elements.append(header_table)
     elements.append(Spacer(1, 0.25*inch))
     
+    # Debug print to verify settings
+    print("PDF Generator - Using settings:", {
+        "company_name": settings.company_name if settings else "No settings found",
+        "company_address": settings.company_address if settings else "No address",
+        "company_email": settings.company_email if settings else "No email"
+    })
+    
     # Add company and customer information with modern styling
     company_info = [
         [Paragraph("<font color='#2c3e50'><b>FROM</b></font>", styles['Normal']), 
