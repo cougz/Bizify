@@ -96,11 +96,11 @@ async def register_user(user: schemas.UserCreate, db: Session = Depends(get_db))
             detail="Email already registered",
         )
     
-    # Create new user
+    # Create new user with email as name if no name provided
     hashed_password = get_password_hash(user.password)
     db_user = models.User(
         email=user.email,
-        name=user.name,
+        name=user.name if user.name else user.email,  # Use email if no name provided
         hashed_password=hashed_password
     )
     db.add(db_user)
