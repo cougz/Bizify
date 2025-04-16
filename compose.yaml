@@ -45,22 +45,18 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
-      args:
-        - REACT_APP_API_URL=/api
     container_name: bizify-frontend
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     environment:
-      # Nginx configuration
-      - NGINX_SERVER_NAME=${NGINX_SERVER_NAME:-localhost}
-      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
-      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
-      
-      # Runtime configuration
-      - API_URL=${API_URL:-/api}
-      - BASE_PATH=${BASE_PATH:-/}
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - WDS_SOCKET_PORT=3000
 
 volumes:
   postgres_data:

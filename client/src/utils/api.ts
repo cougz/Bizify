@@ -1,32 +1,7 @@
-import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 
-// Define runtime configuration interface
-declare global {
-  interface Window {
-    RUNTIME_CONFIG?: {
-      API_URL?: string;
-      BASE_PATH?: string;
-    };
-  }
-}
-
-// Get API URL from environment variables or runtime config
-const getApiUrl = (): string => {
-  // Check for runtime config first (useful for production builds)
-  if (window.RUNTIME_CONFIG?.API_URL) {
-    return window.RUNTIME_CONFIG.API_URL;
-  }
-  
-  // Then check for React environment variables
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
-  
-  // Default to relative path if nothing else is specified
-  return '/api';
-};
-
-const API_URL = getApiUrl();
+// Get API URL from environment or use default
+const API_URL = '/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -38,10 +13,10 @@ const api = axios.create({
 
 // Request interceptor for adding auth token and logging requests in development
 api.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config) => {
     // Add auth token to request if available
     const token = localStorage.getItem('token');
-    if (token && config.headers) {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
@@ -50,7 +25,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: any) => {
+  (error) => {
     return Promise.reject(error);
   }
 );

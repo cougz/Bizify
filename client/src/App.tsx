@@ -2,22 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { authAPI } from './utils/api';
 
-// Get base path from runtime config
-const getBasePath = (): string => {
-  if (window.RUNTIME_CONFIG?.BASE_PATH) {
-    // Ensure the base path starts with a slash and doesn't end with one
-    let basePath = window.RUNTIME_CONFIG.BASE_PATH;
-    if (!basePath.startsWith('/')) {
-      basePath = '/' + basePath;
-    }
-    if (basePath.endsWith('/') && basePath !== '/') {
-      basePath = basePath.slice(0, -1);
-    }
-    return basePath;
-  }
-  return '';
-};
-
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
@@ -208,12 +192,10 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const basePath = getBasePath();
-  
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router basename={basePath}>
+        <Router>
           <AppRoutes />
         </Router>
       </AuthProvider>

@@ -33,8 +33,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "update-config": "./update-runtime-config.sh"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
