@@ -69,10 +69,15 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {/* Auth routes */}
       <Route path="/login" element={
-        isFirstTimeSetup ? <Navigate to="/register" /> : 
-        <AuthLayout>
-          <Login />
-        </AuthLayout>
+        isFirstTimeSetup === null ? (
+          <div className="flex items-center justify-center h-screen">Loading...</div>
+        ) : isFirstTimeSetup ? (
+          <Navigate to="/register" />
+        ) : (
+          <AuthLayout>
+            <Login />
+          </AuthLayout>
+        )
       } />
       
       <Route path="/register" element={
@@ -81,13 +86,18 @@ const AppRoutes: React.FC = () => {
         </AuthLayout>
       } />
       
-      {/* Main routes - protected */}
       <Route path="/" element={
-        <ProtectedRoute>
-          <MainLayout>
-            <Dashboard />
-          </MainLayout>
-        </ProtectedRoute>
+        isFirstTimeSetup === null ? (
+          <div className="flex items-center justify-center h-screen">Loading...</div>
+        ) : isFirstTimeSetup ? (
+          <Navigate to="/register" />
+        ) : (
+          <ProtectedRoute>
+            <MainLayout>
+              <Dashboard />
+            </MainLayout>
+          </ProtectedRoute>
+        )
       } />
       
       <Route path="/customers" element={
