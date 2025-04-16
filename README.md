@@ -11,6 +11,7 @@ Bizify is a comprehensive invoice management system that helps businesses create
 - **Dark Mode**: Toggle between light and dark themes
 - **Responsive Design**: Works on desktop and mobile devices
 - **User Settings**: Customize your company information and preferences
+- **Reverse Proxy Support**: Deploy behind a reverse proxy like Nginx with configurable paths
 
 ## Getting Started
 
@@ -86,6 +87,7 @@ The application can be deployed using Docker Compose or Kubernetes:
 
 - For Docker Compose deployment, use the provided `compose.yaml` file
 - For Kubernetes deployment, use the configuration files in the `k8s` directory
+- For reverse proxy deployment, see [REVERSE_PROXY.md](REVERSE_PROXY.md) for detailed instructions
 
 ## License
 

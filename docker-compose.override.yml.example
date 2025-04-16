@@ -1,0 +1,32 @@
+# Example docker-compose override file for deploying Bizify behind a reverse proxy
+# Copy this file to docker-compose.override.yml and modify as needed
+
+services:
+  frontend:
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    environment:
+      # Nginx configuration
+      - NGINX_SERVER_NAME=${NGINX_SERVER_NAME:-example.com}
+      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-https://example.com}
+      
+      # Runtime configuration
+      - API_URL=${API_URL:-/bizify/api}
+      - BASE_PATH=${BASE_PATH:-/bizify}
+
+  backend:
+    environment:
+      # Add any backend-specific environment variables here
+      - ALLOWED_HOSTS=example.com,localhost
+      # If your backend needs to know it's behind a proxy
+      - PROXY_PREFIX=/bizify/api
+
+# Example .env file contents to use with this override:
+#
+# NGINX_SERVER_NAME=example.com
+# FRONTEND_PORT=3000
+# BACKEND_URL=http://backend:8000
+# CORS_ALLOW_ORIGIN=https://example.com
+# API_URL=/bizify/api
+# BASE_PATH=/bizify

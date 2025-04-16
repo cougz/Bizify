@@ -65,7 +65,18 @@ spec:
       - name: bizify-frontend
         image: bizify-frontend:latest
         ports:
-        - containerPort: 3000
+        - containerPort: 80
+        env:
+        - name: NGINX_SERVER_NAME
+          value: "localhost"
+        - name: BACKEND_URL
+          value: "http://bizify-backend-service:8000"
+        - name: CORS_ALLOW_ORIGIN
+          value: "*"
+        - name: API_URL
+          value: "/api"
+        - name: BASE_PATH
+          value: "/"
         resources:
           limits:
             cpu: "300m"
@@ -105,7 +116,7 @@ spec:
     tier: frontend
   ports:
   - port: 80
-    targetPort: 3000
+    targetPort: 80
   type: LoadBalancer
 
 ---
