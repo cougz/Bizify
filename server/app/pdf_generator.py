@@ -255,33 +255,43 @@ def generate_pdf(invoice, settings):
     elements.append(Spacer(1, 10*mm))  # Extra space after addresses
     
     # Invoice Details: Date, number, status
-    # Extract status value as string, ensuring we get just the raw value
-    if hasattr(invoice.status, 'value'):
-        status_value = invoice.status.value
-    elif hasattr(invoice.status, 'name'):
-        status_value = invoice.status.name.lower()
-    else:
-        status_value = str(invoice.status).lower()
-    
-    # Get status translation - handle the specific path for status translations
+    # Extract the raw status value using multiple fallback methods
     try:
-        # Get the translation dictionary for all statuses
-        all_status_translations = get_translation('invoice.status', language)
-        
-        # If we got a dictionary and our status exists in it, use that translation
-        if isinstance(all_status_translations, dict) and status_value in all_status_translations:
-            status_translation = all_status_translations[status_value]
-        # Otherwise try to get a direct translation
+        # First check if status is directly a string
+        if isinstance(invoice.status, str):
+            status_value = invoice.status.lower()
+        # Then check if it has a value attribute (Enum)
+        elif hasattr(invoice.status, 'value'):
+            status_value = invoice.status.value
+        # Then check if it has a name attribute (another Enum format)
+        elif hasattr(invoice.status, 'name'):
+            status_value = invoice.status.name.lower()
+        # Fallback to string conversion
         else:
-            status_path = f"invoice.status.{status_value}"
-            direct_translation = get_translation(status_path, language)
-            # If we got back the same path, it failed to translate, so use uppercase status
-            if direct_translation == status_path:
-                status_translation = status_value.upper()
-            else:
-                status_translation = direct_translation
+            status_value = str(invoice.status).lower()
+            
+        # Clean up the status value if it's still not clean
+        if isinstance(status_value, dict) or '{' in str(status_value):
+            # If somehow we got a dictionary, use a default value
+            status_value = 'draft'
     except Exception as e:
-        print(f"Error translating status: {e}")
+        print(f"Error extracting status value: {e}")
+        status_value = 'draft'  # Default fallback
+    
+    # Direct hardcoded translations to avoid any dictionary issues
+    status_translations = {
+        'draft': 'ENTWURF' if language == 'de' else 'DRAFT',
+        'pending': 'AUSSTEHEND' if language == 'de' else 'PENDING',
+        'paid': 'BEZAHLT' if language == 'de' else 'PAID',
+        'overdue': 'ÜBERFÄLLIG' if language == 'de' else 'OVERDUE',
+        'cancelled': 'STORNIERT' if language == 'de' else 'CANCELLED'
+    }
+    
+    # Get the specific translated status with fallback
+    status_translation = status_translations.get(status_value, status_value.upper())
+    
+    # Final safety check - ensure we have a string, not a dict
+    if not isinstance(status_translation, str) or '{' in status_translation:
         status_translation = status_value.upper()
     
     # Prepare translated labels
@@ -301,12 +311,11 @@ def generate_pdf(invoice, settings):
     )
     
     # Create invoice details with paragraphs for wrapping
-    # Make sure the dictionary of translations doesn't appear in the invoice
     invoice_details = [
         [Paragraph(f"{number_label}:", styles['Normal']), Paragraph(invoice.invoice_number, styles['Normal'])],
         [Paragraph(f"{date_label}:", styles['Normal']), Paragraph(issue_date, styles['Normal'])],
         [Paragraph(f"{due_date_label}:", styles['Normal']), Paragraph(due_date, styles['Normal'])],
-        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(str(status_translation), styles['Normal'])]
+        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(status_translation, styles['Normal'])]
     ]
     
     # Adjust column widths based on language - German needs more space for labels
@@ -362,16 +371,32 @@ def generate_pdf(invoice, settings):
             Paragraph(f"{currency_symbol}{item.amount:.2f}", styles['RightAlign'])
         ])
     
-    # Get translated labels for totals
-    subtotal_label = get_translation('invoice.subtotal', language)
-    discount_label = get_translation('invoice.discount', language)
-    tax_label = get_translation('invoice.tax', language)
-    total_label = get_translation('invoice.total', language)
+    # Create a special style for financial terms that prevents word breaks
+    styles.add(ParagraphStyle(
+        name='FinancialTerm',
+        parent=styles['RightAlign'],
+        wordWrap='CJK',  # This forces whole words to wrap together
+        allowWidows=0,
+        allowOrphans=0
+    ))
     
-    # Add subtotal, tax, and total with right alignment
+    # Get translated labels for totals - use non-breaking spaces for German
+    if language == 'de':
+        # Use non-breaking space character \xa0 to prevent word breaks
+        subtotal_label = "Zwischensumme"  # Hardcoded to prevent translation issues
+        discount_label = "Rabatt"
+        tax_label = "Steuer"
+        total_label = "Gesamtbetrag"
+    else:
+        subtotal_label = "Subtotal"
+        discount_label = "Discount"
+        tax_label = "Tax"
+        total_label = "Total"
+    
+    # Add subtotal with right alignment and no word breaks
     items_data.append([
         "", "", 
-        Paragraph(f"{subtotal_label}:", styles['RightAlign']), 
+        Paragraph(f"{subtotal_label}:", styles['FinancialTerm']), 
         Paragraph(f"{currency_symbol}{invoice.subtotal:.2f}", styles['RightAlign'])
     ])
     
@@ -379,30 +404,36 @@ def generate_pdf(invoice, settings):
     if hasattr(invoice, 'discount') and invoice.discount > 0:
         items_data.append([
             "", "", 
-            Paragraph(f"{discount_label}:", styles['RightAlign']), 
+            Paragraph(f"{discount_label}:", styles['FinancialTerm']), 
             Paragraph(f"-{currency_symbol}{invoice.discount:.2f}", styles['RightAlign'])
         ])
     
     # Add tax
     items_data.append([
         "", "", 
-        Paragraph(f"{tax_label} ({invoice.tax_rate}%):", styles['RightAlign']), 
+        Paragraph(f"{tax_label} ({invoice.tax_rate}%):", styles['FinancialTerm']), 
         Paragraph(f"{currency_symbol}{invoice.tax_amount:.2f}", styles['RightAlign'])
     ])
     
     # Add total
     items_data.append([
         "", "", 
-        Paragraph(f"<b>{total_label}:</b>", styles['RightAlign']), 
+        Paragraph(f"<b>{total_label}:</b>", styles['FinancialTerm']), 
         Paragraph(f"<b>{currency_symbol}{invoice.total:.2f}</b>", styles['RightAlign'])
     ])
     
-    # Calculate column widths based on page width
-    # Description gets more space, other columns are narrower
-    desc_width = available_width * 0.5  # 50% for description
-    num_width = available_width * 0.15   # 15% for quantity
-    unit_width = available_width * 0.15  # 15% for unit price
-    amount_width = available_width * 0.2  # 20% for amount
+    # Calculate column widths based on page width and language
+    # For German, we need more space for the labels column
+    if language == 'de':
+        desc_width = available_width * 0.45  # 45% for description
+        num_width = available_width * 0.15   # 15% for quantity
+        unit_width = available_width * 0.18  # 18% for unit price (German terms are longer)
+        amount_width = available_width * 0.22  # 22% for amount (German terms are longer)
+    else:
+        desc_width = available_width * 0.5   # 50% for description
+        num_width = available_width * 0.15   # 15% for quantity
+        unit_width = available_width * 0.15  # 15% for unit price
+        amount_width = available_width * 0.2  # 20% for amount
     
     items_table = Table(
         items_data, 
@@ -448,26 +479,40 @@ def generate_pdf(invoice, settings):
             elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
             elements.append(Spacer(1, 8*mm))
         
-        # Add bank details if available
-        if hasattr(settings, 'bank_name') and (settings.bank_name or settings.bank_iban or settings.bank_bic):
-            bank_details_label = get_translation('invoice.bank_details', language)
-            elements.append(Paragraph(f"<font color='#2c3e50'><b>{bank_details_label}</b></font>", styles['Normal']))
-            elements.append(Spacer(1, 3*mm))
-            
-            # Get translations for bank details
-            bank_name_label = get_translation('bank.name', language)
-            bank_iban_label = get_translation('bank.iban', language)
-            bank_bic_label = get_translation('bank.bic', language)
-            
-            bank_details = []
-            if hasattr(settings, 'bank_name') and settings.bank_name:
-                bank_details.append(f"{bank_name_label}: {settings.bank_name}")
-            if hasattr(settings, 'bank_iban') and settings.bank_iban:
-                bank_details.append(f"{bank_iban_label}: {settings.bank_iban}")
-            if hasattr(settings, 'bank_bic') and settings.bank_bic:
-                bank_details.append(f"{bank_bic_label}: {settings.bank_bic}")
-            
-            elements.append(Paragraph("<br/>".join(bank_details), styles['Normal']))
+    # Add bank details if available - use a table for better layout control
+    if hasattr(settings, 'bank_name') and (settings.bank_name or settings.bank_iban or settings.bank_bic):
+        bank_details_label = get_translation('invoice.bank_details', language)
+        elements.append(Paragraph(f"<font color='#2c3e50'><b>{bank_details_label}</b></font>", styles['Normal']))
+        elements.append(Spacer(1, 3*mm))
+        
+        # Get translations for bank details
+        bank_name_label = get_translation('bank.name', language)
+        bank_iban_label = get_translation('bank.iban', language)
+        bank_bic_label = get_translation('bank.bic', language)
+        
+        # Create a table for bank details to keep them on one page
+        bank_data = []
+        if hasattr(settings, 'bank_name') and settings.bank_name:
+            bank_data.append([Paragraph(f"<b>{bank_name_label}:</b>", styles['Normal']), 
+                             Paragraph(settings.bank_name, styles['Normal'])])
+        if hasattr(settings, 'bank_iban') and settings.bank_iban:
+            bank_data.append([Paragraph(f"<b>{bank_iban_label}:</b>", styles['Normal']), 
+                             Paragraph(settings.bank_iban, styles['Normal'])])
+        if hasattr(settings, 'bank_bic') and settings.bank_bic:
+            bank_data.append([Paragraph(f"<b>{bank_bic_label}:</b>", styles['Normal']), 
+                             Paragraph(settings.bank_bic, styles['Normal'])])
+        
+        # Create a compact table for bank details
+        if bank_data:
+            bank_table = Table(bank_data, colWidths=[available_width * 0.2, available_width * 0.8])
+            bank_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 1),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+            ]))
+            elements.append(bank_table)
     
     # Build the PDF
     doc.build(elements)
