@@ -234,14 +234,18 @@ def generate_pdf(invoice, settings):
     elements.append(Spacer(1, 0.25*inch))
     
     # Add invoice details with modern styling
+    # Extract status value as string
+    status_value = invoice.status.value if hasattr(invoice.status, 'value') else str(invoice.status)
+    
     invoice_details = [
         [f"{get_translation('invoice.number', language)}:", invoice.invoice_number],
         [f"{get_translation('invoice.date', language)}:", format_date(datetime.fromisoformat(invoice.issue_date) if isinstance(invoice.issue_date, str) else invoice.issue_date, language)],
         [f"{get_translation('invoice.due_date', language)}:", format_date(datetime.fromisoformat(invoice.due_date) if isinstance(invoice.due_date, str) else invoice.due_date, language)],
-        [f"{get_translation('invoice.status', language)}:", get_translation(f"invoice.status.{invoice.status}", language)]
+        [f"{get_translation('invoice.status', language)}:", get_translation(f"invoice.status.{status_value}", language)]
     ]
     
-    details_table = Table(invoice_details, colWidths=[1.5*inch, 4.5*inch])
+    # Adjust column widths to accommodate longer German text
+    details_table = Table(invoice_details, colWidths=[2*inch, 4*inch])
     details_table.setStyle(TableStyle([
         ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -297,10 +301,15 @@ def generate_pdf(invoice, settings):
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
         ('LINEBELOW', (0, len(invoice.items)), (-1, len(invoice.items)), 1, colors.HexColor('#ecf0f1')),
         ('LINEABOVE', (2, -1), (-1, -1), 1, colors.HexColor('#ecf0f1')),
+        # Make the total row background darker and ensure text is white for both columns
         ('BACKGROUND', (2, -1), (3, -1), colors.HexColor('#2c3e50')),
         ('TEXTCOLOR', (2, -1), (3, -1), colors.white),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        # Add more padding for the total row to accommodate longer German text
+        ('LEFTPADDING', (2, -1), (3, -1), 10),
+        ('RIGHTPADDING', (2, -1), (3, -1), 10),
+        # Standard padding for other cells
+        ('LEFTPADDING', (0, 0), (-1, -2), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -2), 6),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
     ]))
