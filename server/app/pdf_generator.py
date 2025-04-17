@@ -178,7 +178,9 @@ def generate_pdf(invoice, settings):
         styles['RightAlign']
     )
     
-    header_table = Table(header_data, colWidths=[3*inch, 3*inch])
+    # Use proportional widths based on available page width
+    available_width = doc.width
+    header_table = Table(header_data, colWidths=[available_width * 0.5, available_width * 0.5])
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 12),
@@ -223,7 +225,9 @@ def generate_pdf(invoice, settings):
         ]
     ]
     
-    company_table = Table(company_info, colWidths=[3*inch, 3*inch])
+    # Use proportional widths based on available page width
+    available_width = doc.width
+    company_table = Table(company_info, colWidths=[available_width * 0.5, available_width * 0.5])
     company_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('TOPPADDING', (0, 0), (1, 0), 12),
@@ -266,8 +270,13 @@ def generate_pdf(invoice, settings):
         [f"{get_translation('invoice.status', language)}:", status_translation]
     ]
     
-    # Adjust column widths to accommodate longer German text
-    details_table = Table(invoice_details, colWidths=[2*inch, 4*inch])
+    # Adjust column widths based on language and available width
+    available_width = doc.width
+    if language == 'de':
+        # Wider first column for German (which has longer labels)
+        details_table = Table(invoice_details, colWidths=[available_width * 0.4, available_width * 0.6])
+    else:
+        details_table = Table(invoice_details, colWidths=[available_width * 0.35, available_width * 0.65])
     details_table.setStyle(TableStyle([
         ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -291,29 +300,74 @@ def generate_pdf(invoice, settings):
         'AUD': 'A$'
     }.get(settings.currency if hasattr(settings, 'currency') and settings.currency else 'USD', '$')
     
-    # Add invoice items with modern styling
+    # Add invoice items with modern styling - use Paragraph for all text to enable wrapping
     items_data = [[
-        get_translation('invoice.description', language),
-        get_translation('invoice.quantity', language),
-        get_translation('invoice.unit_price', language),
-        get_translation('invoice.amount', language)
+        Paragraph(get_translation('invoice.description', language), styles['Normal']),
+        Paragraph(get_translation('invoice.quantity', language), styles['Normal']),
+        Paragraph(get_translation('invoice.unit_price', language), styles['Normal']),
+        Paragraph(get_translation('invoice.amount', language), styles['Normal'])
     ]]
+    
+    # Create a style for right-aligned text
+    styles.add(ParagraphStyle(
+        name='RightAlignedCell',
+        parent=styles['Normal'],
+        alignment=2  # 2 is right alignment
+    ))
+    
     for item in invoice.items:
         items_data.append([
-            item.description,
-            str(item.quantity),
-            f"{currency_symbol}{item.unit_price:.2f}",
-            f"{currency_symbol}{item.amount:.2f}"
+            # Use Paragraph for description to enable text wrapping
+            Paragraph(item.description, styles['Normal']),
+            # Right-align numeric values
+            Paragraph(str(item.quantity), styles['RightAlignedCell']),
+            Paragraph(f"{currency_symbol}{item.unit_price:.2f}", styles['RightAlignedCell']),
+            Paragraph(f"{currency_symbol}{item.amount:.2f}", styles['RightAlignedCell'])
         ])
     
-    # Add subtotal, tax, and total
-    items_data.append(["", "", f"{get_translation('invoice.subtotal', language)}:", f"{currency_symbol}{invoice.subtotal:.2f}"])
-    if invoice.discount > 0:
-        items_data.append(["", "", f"{get_translation('invoice.discount', language)}:", f"-{currency_symbol}{invoice.discount:.2f}"])
-    items_data.append(["", "", f"{get_translation('invoice.tax', language)} ({invoice.tax_rate}%):", f"{currency_symbol}{invoice.tax_amount:.2f}"])
-    items_data.append(["", "", f"{get_translation('invoice.total', language)}:", f"{currency_symbol}{invoice.total:.2f}"])
+    # Add subtotal, tax, and total - use Paragraph for all text
+    items_data.append([
+        "", "", 
+        Paragraph(f"{get_translation('invoice.subtotal', language)}:", styles['RightAlignedCell']), 
+        Paragraph(f"{currency_symbol}{invoice.subtotal:.2f}", styles['RightAlignedCell'])
+    ])
     
-    items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1*inch, 1*inch])
+    if invoice.discount > 0:
+        items_data.append([
+            "", "", 
+            Paragraph(f"{get_translation('invoice.discount', language)}:", styles['RightAlignedCell']), 
+            Paragraph(f"-{currency_symbol}{invoice.discount:.2f}", styles['RightAlignedCell'])
+        ])
+    
+    items_data.append([
+        "", "", 
+        Paragraph(f"{get_translation('invoice.tax', language)} ({invoice.tax_rate}%):", styles['RightAlignedCell']), 
+        Paragraph(f"{currency_symbol}{invoice.tax_amount:.2f}", styles['RightAlignedCell'])
+    ])
+    
+    items_data.append([
+        "", "", 
+        Paragraph(f"{get_translation('invoice.total', language)}:", styles['RightAlignedCell']), 
+        Paragraph(f"{currency_symbol}{invoice.total:.2f}", styles['RightAlignedCell'])
+    ])
+    
+    # Use proportional widths based on available page width
+    available_width = doc.width
+    if language == 'de':
+        # Adjust for German (which has longer words)
+        items_table = Table(items_data, colWidths=[
+            available_width * 0.45,  # Description - wider for German
+            available_width * 0.15,  # Quantity
+            available_width * 0.2,   # Unit Price - wider for German
+            available_width * 0.2    # Amount
+        ])
+    else:
+        items_table = Table(items_data, colWidths=[
+            available_width * 0.5,   # Description
+            available_width * 0.15,  # Quantity
+            available_width * 0.175, # Unit Price
+            available_width * 0.175  # Amount
+        ])
     items_table.setStyle(TableStyle([
         ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONT', (2, -3), (3, -1), 'Helvetica-Bold'),
@@ -336,38 +390,66 @@ def generate_pdf(invoice, settings):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
     ]))
     elements.append(items_table)
-    elements.append(Spacer(1, 0.25*inch))
+    # Increase spacing after the items table
+    elements.append(Spacer(1, 0.5*inch))
     
     # Add notes if available
     if invoice.notes:
         elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.notes', language)}</b></font>", styles['Normal']))
-        elements.append(Spacer(1, 0.1*inch))
-        elements.append(Paragraph(invoice.notes, styles['Normal']))
-        elements.append(Spacer(1, 0.25*inch))
+        elements.append(Spacer(1, 0.2*inch))
+        # Create a style for notes with proper wrapping
+        styles.add(ParagraphStyle(
+            name='Notes',
+            parent=styles['Normal'],
+            firstLineIndent=0,
+            leftIndent=10,
+            rightIndent=10
+        ))
+        elements.append(Paragraph(invoice.notes, styles['Notes']))
+        elements.append(Spacer(1, 0.5*inch))
     
     # Add payment instructions and bank details
     if settings:
         # Add payment instructions if available
         if settings.invoice_footer:
             elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.payment_instructions', language)}</b></font>", styles['Normal']))
-            elements.append(Spacer(1, 0.1*inch))
-            elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
-            elements.append(Spacer(1, 0.25*inch))
+            elements.append(Spacer(1, 0.2*inch))
+            # Create a style for payment instructions with proper wrapping
+            styles.add(ParagraphStyle(
+                name='PaymentInstructions',
+                parent=styles['Normal'],
+                firstLineIndent=0,
+                leftIndent=10,
+                rightIndent=10
+            ))
+            elements.append(Paragraph(settings.invoice_footer, styles['PaymentInstructions']))
+            elements.append(Spacer(1, 0.5*inch))
         
         # Add bank details if available
         if hasattr(settings, 'bank_name') and (settings.bank_name or settings.bank_iban or settings.bank_bic):
             elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.bank_details', language)}</b></font>", styles['Normal']))
-            elements.append(Spacer(1, 0.1*inch))
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Create a style for bank details with proper formatting
+            styles.add(ParagraphStyle(
+                name='BankDetails',
+                parent=styles['Normal'],
+                firstLineIndent=0,
+                leftIndent=10,
+                rightIndent=10,
+                spaceBefore=6,
+                spaceAfter=6
+            ))
             
             bank_details = []
             if settings.bank_name:
-                bank_details.append(f"{get_translation('bank.name', language)}: {settings.bank_name}")
+                bank_details.append(f"<b>{get_translation('bank.name', language)}:</b> {settings.bank_name}")
             if settings.bank_iban:
-                bank_details.append(f"{get_translation('bank.iban', language)}: {settings.bank_iban}")
+                bank_details.append(f"<b>{get_translation('bank.iban', language)}:</b> {settings.bank_iban}")
             if settings.bank_bic:
-                bank_details.append(f"{get_translation('bank.bic', language)}: {settings.bank_bic}")
+                bank_details.append(f"<b>{get_translation('bank.bic', language)}:</b> {settings.bank_bic}")
             
-            elements.append(Paragraph("<br/>".join(bank_details), styles['Normal']))
+            elements.append(Paragraph("<br/>".join(bank_details), styles['BankDetails']))
     
     # Build the PDF
     doc.build(elements)
