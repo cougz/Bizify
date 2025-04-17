@@ -108,6 +108,7 @@ class Settings(Base):
     bank_name = Column(String)
     bank_iban = Column(String)
     bank_bic = Column(String)
+    language = Column(String, default="en")  # 'en' for English, 'de' for German, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

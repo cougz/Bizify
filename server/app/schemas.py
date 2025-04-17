@@ -112,6 +112,7 @@ class SettingsBase(BaseModel):
     bank_name: Optional[str] = None
     bank_iban: Optional[str] = None
     bank_bic: Optional[str] = None
+    language: Optional[str] = "en"
 
 # Create schemas
 class UserCreate(UserBase):

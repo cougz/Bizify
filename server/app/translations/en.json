@@ -1,0 +1,34 @@
+{
+  "invoice": {
+    "title": "INVOICE",
+    "number": "Invoice Number",
+    "date": "Issue Date",
+    "due_date": "Due Date",
+    "from": "FROM",
+    "bill_to": "BILL TO",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unit_price": "Unit Price",
+    "amount": "Amount",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Tax",
+    "total": "Total",
+    "notes": "Notes",
+    "payment_instructions": "Payment Instructions",
+    "bank_details": "Bank Details",
+    "page": "Page",
+    "status": {
+      "draft": "DRAFT",
+      "pending": "PENDING",
+      "paid": "PAID",
+      "overdue": "OVERDUE",
+      "cancelled": "CANCELLED"
+    }
+  },
+  "bank": {
+    "name": "Bank",
+    "iban": "IBAN",
+    "bic": "BIC/SWIFT"
+  }
+}

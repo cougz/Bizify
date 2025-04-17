@@ -8,11 +8,16 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, Frame, PageTemplate
 from reportlab.pdfgen import canvas
 
+from app.utils.translations import get_translation, format_date, format_currency
+
 def create_footer(canvas, doc, settings):
     """
     Create a footer for each page of the invoice
     """
     canvas.saveState()
+    
+    # Get language from settings or default to English
+    language = getattr(settings, 'language', 'en')
     
     # Set footer position
     footer_y = 0.5 * inch
@@ -25,7 +30,8 @@ def create_footer(canvas, doc, settings):
     print("PDF Footer - Using settings:", {
         "company_name": settings.company_name if settings else "No settings found",
         "company_address": settings.company_address if settings else "No address",
-        "company_email": settings.company_email if settings else "No email"
+        "company_email": settings.company_email if settings else "No email",
+        "language": language
     })
     
     # Add company info in the footer
@@ -41,7 +47,8 @@ def create_footer(canvas, doc, settings):
     
     # Add page number
     page_num = canvas.getPageNumber()
-    canvas.drawRightString(doc.width + 0.5*inch, footer_y - 0.3*inch, f"Page {page_num}")
+    page_text = f"{get_translation('invoice.page', language)} {page_num}"
+    canvas.drawRightString(doc.width + 0.5*inch, footer_y - 0.3*inch, page_text)
     
     canvas.restoreState()
 
@@ -160,8 +167,16 @@ def generate_pdf(invoice, settings):
         company_name = settings.company_name if settings and settings.company_name else 'Your Company'
         header_data[0][0] = Paragraph(f"<font size='16'><b>{company_name}</b></font>", styles['Normal'])
     
-    # Add invoice title
-    header_data[0][1] = Paragraph(f"<font size='24' color='#2c3e50'><b>INVOICE</b></font><br/><font size='14' color='#7f8c8d'>#{invoice.invoice_number}</font>", styles['RightAlign'])
+    # Get language from settings or default to English
+    language = getattr(settings, 'language', 'en')
+    
+    # Add invoice title with translation
+    invoice_title = get_translation('invoice.title', language)
+    header_data[0][1] = Paragraph(
+        f"<font size='24' color='#2c3e50'><b>{invoice_title}</b></font><br/>" +
+        f"<font size='14' color='#7f8c8d'>#{invoice.invoice_number}</font>", 
+        styles['RightAlign']
+    )
     
     header_table = Table(header_data, colWidths=[3*inch, 3*inch])
     header_table.setStyle(TableStyle([
@@ -181,8 +196,8 @@ def generate_pdf(invoice, settings):
     
     # Add company and customer information with modern styling
     company_info = [
-        [Paragraph("<font color='#2c3e50'><b>FROM</b></font>", styles['Normal']), 
-         Paragraph("<font color='#2c3e50'><b>BILL TO</b></font>", styles['Normal'])],
+        [Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.from', language)}</b></font>", styles['Normal']), 
+         Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.bill_to', language)}</b></font>", styles['Normal'])],
         [
             Paragraph(
                 f"<font size='12'><b>{settings.company_name if settings and settings.company_name else 'Your Company'}</b></font><br/>" +
@@ -220,10 +235,10 @@ def generate_pdf(invoice, settings):
     
     # Add invoice details with modern styling
     invoice_details = [
-        ["Invoice Number:", invoice.invoice_number],
-        ["Issue Date:", datetime.fromisoformat(invoice.issue_date).strftime("%B %d, %Y") if isinstance(invoice.issue_date, str) else invoice.issue_date.strftime("%B %d, %Y")],
-        ["Due Date:", datetime.fromisoformat(invoice.due_date).strftime("%B %d, %Y") if isinstance(invoice.due_date, str) else invoice.due_date.strftime("%B %d, %Y")],
-        ["Status:", invoice.status.upper()]
+        [f"{get_translation('invoice.number', language)}:", invoice.invoice_number],
+        [f"{get_translation('invoice.date', language)}:", format_date(datetime.fromisoformat(invoice.issue_date) if isinstance(invoice.issue_date, str) else invoice.issue_date, language)],
+        [f"{get_translation('invoice.due_date', language)}:", format_date(datetime.fromisoformat(invoice.due_date) if isinstance(invoice.due_date, str) else invoice.due_date, language)],
+        [f"{get_translation('invoice.status', language)}:", get_translation(f"invoice.status.{invoice.status}", language)]
     ]
     
     details_table = Table(invoice_details, colWidths=[1.5*inch, 4.5*inch])
@@ -251,7 +266,12 @@ def generate_pdf(invoice, settings):
     }.get(settings.currency if hasattr(settings, 'currency') and settings.currency else 'USD', '$')
     
     # Add invoice items with modern styling
-    items_data = [["Description", "Quantity", "Unit Price", "Amount"]]
+    items_data = [[
+        get_translation('invoice.description', language),
+        get_translation('invoice.quantity', language),
+        get_translation('invoice.unit_price', language),
+        get_translation('invoice.amount', language)
+    ]]
     for item in invoice.items:
         items_data.append([
             item.description,
@@ -261,11 +281,11 @@ def generate_pdf(invoice, settings):
         ])
     
     # Add subtotal, tax, and total
-    items_data.append(["", "", "Subtotal:", f"{currency_symbol}{invoice.subtotal:.2f}"])
+    items_data.append(["", "", f"{get_translation('invoice.subtotal', language)}:", f"{currency_symbol}{invoice.subtotal:.2f}"])
     if invoice.discount > 0:
-        items_data.append(["", "", "Discount:", f"-{currency_symbol}{invoice.discount:.2f}"])
-    items_data.append(["", "", f"Tax ({invoice.tax_rate}%):", f"{currency_symbol}{invoice.tax_amount:.2f}"])
-    items_data.append(["", "", "Total:", f"{currency_symbol}{invoice.total:.2f}"])
+        items_data.append(["", "", f"{get_translation('invoice.discount', language)}:", f"-{currency_symbol}{invoice.discount:.2f}"])
+    items_data.append(["", "", f"{get_translation('invoice.tax', language)} ({invoice.tax_rate}%):", f"{currency_symbol}{invoice.tax_amount:.2f}"])
+    items_data.append(["", "", f"{get_translation('invoice.total', language)}:", f"{currency_symbol}{invoice.total:.2f}"])
     
     items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1*inch, 1*inch])
     items_table.setStyle(TableStyle([
@@ -289,7 +309,7 @@ def generate_pdf(invoice, settings):
     
     # Add notes if available
     if invoice.notes:
-        elements.append(Paragraph("<font color='#2c3e50'><b>Notes</b></font>", styles['Normal']))
+        elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.notes', language)}</b></font>", styles['Normal']))
         elements.append(Spacer(1, 0.1*inch))
         elements.append(Paragraph(invoice.notes, styles['Normal']))
         elements.append(Spacer(1, 0.25*inch))
@@ -298,23 +318,23 @@ def generate_pdf(invoice, settings):
     if settings:
         # Add payment instructions if available
         if settings.invoice_footer:
-            elements.append(Paragraph("<font color='#2c3e50'><b>Payment Instructions</b></font>", styles['Normal']))
+            elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.payment_instructions', language)}</b></font>", styles['Normal']))
             elements.append(Spacer(1, 0.1*inch))
             elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
             elements.append(Spacer(1, 0.25*inch))
         
         # Add bank details if available
         if hasattr(settings, 'bank_name') and (settings.bank_name or settings.bank_iban or settings.bank_bic):
-            elements.append(Paragraph("<font color='#2c3e50'><b>Bank Details</b></font>", styles['Normal']))
+            elements.append(Paragraph(f"<font color='#2c3e50'><b>{get_translation('invoice.bank_details', language)}</b></font>", styles['Normal']))
             elements.append(Spacer(1, 0.1*inch))
             
             bank_details = []
             if settings.bank_name:
-                bank_details.append(f"Bank: {settings.bank_name}")
+                bank_details.append(f"{get_translation('bank.name', language)}: {settings.bank_name}")
             if settings.bank_iban:
-                bank_details.append(f"IBAN: {settings.bank_iban}")
+                bank_details.append(f"{get_translation('bank.iban', language)}: {settings.bank_iban}")
             if settings.bank_bic:
-                bank_details.append(f"BIC/SWIFT: {settings.bank_bic}")
+                bank_details.append(f"{get_translation('bank.bic', language)}: {settings.bank_bic}")
             
             elements.append(Paragraph("<br/>".join(bank_details), styles['Normal']))
     

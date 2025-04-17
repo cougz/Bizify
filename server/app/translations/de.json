@@ -1,0 +1,34 @@
+{
+  "invoice": {
+    "title": "RECHNUNG",
+    "number": "Rechnungsnummer",
+    "date": "Rechnungsdatum",
+    "due_date": "Fälligkeitsdatum",
+    "from": "VON",
+    "bill_to": "RECHNUNG AN",
+    "description": "Beschreibung",
+    "quantity": "Menge",
+    "unit_price": "Einzelpreis",
+    "amount": "Betrag",
+    "subtotal": "Zwischensumme",
+    "discount": "Rabatt",
+    "tax": "Steuer",
+    "total": "Gesamtbetrag",
+    "notes": "Anmerkungen",
+    "payment_instructions": "Zahlungsanweisungen",
+    "bank_details": "Bankverbindung",
+    "page": "Seite",
+    "status": {
+      "draft": "ENTWURF",
+      "pending": "AUSSTEHEND",
+      "paid": "BEZAHLT",
+      "overdue": "ÜBERFÄLLIG",
+      "cancelled": "STORNIERT"
+    }
+  },
+  "bank": {
+    "name": "Bank",
+    "iban": "IBAN",
+    "bic": "BIC/SWIFT"
+  }
+}

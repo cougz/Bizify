@@ -23,6 +23,7 @@ interface SettingsData {
   bank_name: string;
   bank_iban: string;
   bank_bic: string;
+  language: string;
 }
 
 const Settings: React.FC = () => {
@@ -42,7 +43,8 @@ const Settings: React.FC = () => {
     invoice_footer: '',
     bank_name: '',
     bank_iban: '',
-    bank_bic: ''
+    bank_bic: '',
+    language: 'en'
   });
   
   const [loading, setLoading] = useState<boolean>(true);
@@ -370,6 +372,22 @@ const Settings: React.FC = () => {
                   <option value="GBP">GBP - British Pound</option>
                   <option value="CAD">CAD - Canadian Dollar</option>
                   <option value="AUD">AUD - Australian Dollar</option>
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">
+                  Language
+                </label>
+                <select
+                  id="language"
+                  name="language"
+                  value={settings.language}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="en">English</option>
+                  <option value="de">German (Deutsch)</option>
                 </select>
               </div>
               
