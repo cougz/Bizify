@@ -105,6 +105,9 @@ class Settings(Base):
     currency = Column(String, default="USD")
     invoice_prefix = Column(String, default="INV-")
     invoice_footer = Column(Text)
+    bank_name = Column(String)
+    bank_iban = Column(String)
+    bank_bic = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

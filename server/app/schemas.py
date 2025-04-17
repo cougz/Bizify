@@ -109,6 +109,9 @@ class SettingsBase(BaseModel):
     currency: Optional[str] = "USD"
     invoice_prefix: Optional[str] = "INV-"
     invoice_footer: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_iban: Optional[str] = None
+    bank_bic: Optional[str] = None
 
 # Create schemas
 class UserCreate(UserBase):

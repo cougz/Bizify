@@ -3,6 +3,9 @@ from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
+import importlib.util
+import os
+import sys
 
 from app.database import engine, get_db
 from app import models, schemas, crud
@@ -10,6 +13,17 @@ from app.auth import auth_router, get_current_user
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
+
+# Run migrations
+try:
+    # Add the server directory to the path so we can import the migrations module
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    # Import and run the add_bank_details migration
+    from migrations.add_bank_details import run_migration
+    run_migration()
+except Exception as e:
+    print(f"Error running migrations: {e}")
 
 app = FastAPI(title="Bizify API", description="Business Management API", version="0.1.0")
 

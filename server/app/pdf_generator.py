@@ -294,11 +294,29 @@ def generate_pdf(invoice, settings):
         elements.append(Paragraph(invoice.notes, styles['Normal']))
         elements.append(Spacer(1, 0.25*inch))
     
-    # Add payment instructions
-    if settings and settings.invoice_footer:
-        elements.append(Paragraph("<font color='#2c3e50'><b>Payment Instructions</b></font>", styles['Normal']))
-        elements.append(Spacer(1, 0.1*inch))
-        elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
+    # Add payment instructions and bank details
+    if settings:
+        # Add payment instructions if available
+        if settings.invoice_footer:
+            elements.append(Paragraph("<font color='#2c3e50'><b>Payment Instructions</b></font>", styles['Normal']))
+            elements.append(Spacer(1, 0.1*inch))
+            elements.append(Paragraph(settings.invoice_footer, styles['Normal']))
+            elements.append(Spacer(1, 0.25*inch))
+        
+        # Add bank details if available
+        if hasattr(settings, 'bank_name') and (settings.bank_name or settings.bank_iban or settings.bank_bic):
+            elements.append(Paragraph("<font color='#2c3e50'><b>Bank Details</b></font>", styles['Normal']))
+            elements.append(Spacer(1, 0.1*inch))
+            
+            bank_details = []
+            if settings.bank_name:
+                bank_details.append(f"Bank: {settings.bank_name}")
+            if settings.bank_iban:
+                bank_details.append(f"IBAN: {settings.bank_iban}")
+            if settings.bank_bic:
+                bank_details.append(f"BIC/SWIFT: {settings.bank_bic}")
+            
+            elements.append(Paragraph("<br/>".join(bank_details), styles['Normal']))
     
     # Build the PDF
     doc.build(elements)

@@ -20,6 +20,9 @@ interface SettingsData {
   currency: string;
   invoice_prefix: string;
   invoice_footer: string;
+  bank_name: string;
+  bank_iban: string;
+  bank_bic: string;
 }
 
 const Settings: React.FC = () => {
@@ -36,7 +39,10 @@ const Settings: React.FC = () => {
     tax_rate: 0,
     currency: 'USD',
     invoice_prefix: 'INV-',
-    invoice_footer: ''
+    invoice_footer: '',
+    bank_name: '',
+    bank_iban: '',
+    bank_bic: ''
   });
   
   const [loading, setLoading] = useState<boolean>(true);
@@ -390,6 +396,56 @@ const Settings: React.FC = () => {
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 ></textarea>
+              </div>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="mt-6">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Bank Details</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="bank_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Bank Name
+                </label>
+                <input
+                  type="text"
+                  id="bank_name"
+                  name="bank_name"
+                  value={settings.bank_name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="bank_iban" className="block text-sm font-medium text-gray-700 mb-1">
+                  IBAN
+                </label>
+                <input
+                  type="text"
+                  id="bank_iban"
+                  name="bank_iban"
+                  value={settings.bank_iban}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="bank_bic" className="block text-sm font-medium text-gray-700 mb-1">
+                  BIC/SWIFT
+                </label>
+                <input
+                  type="text"
+                  id="bank_bic"
+                  name="bank_bic"
+                  value={settings.bank_bic}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
               </div>
             </div>
           </div>
