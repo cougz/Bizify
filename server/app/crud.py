@@ -282,7 +282,10 @@ def delete_invoice(db: Session, invoice_id: int):
     return None
 
 def generate_invoice_pdf(db: Session, invoice_id: int):
-    # Get invoice with related data and eager load the customer relationship
+    """
+    Generate a PDF for an invoice with proper eager loading of relationships
+    """
+    # Get invoice with related data with eager loading
     invoice = db.query(models.Invoice).options(
         # Eagerly load the customer relationship to avoid DetachedInstanceError
         joinedload(models.Invoice.customer),
@@ -293,48 +296,34 @@ def generate_invoice_pdf(db: Session, invoice_id: int):
     if not invoice:
         return None
     
-    # Get user settings - ensure we're getting the latest settings
-    db.refresh(invoice)  # Refresh the invoice to ensure we have the latest data
+    # Get user settings
+    settings = db.query(models.Settings).filter(models.Settings.user_id == invoice.user_id).first()
     
-    # Get all settings for this user
-    all_settings = db.query(models.Settings).filter(models.Settings.user_id == invoice.user_id).all()
-    print(f"Found {len(all_settings)} settings records for user {invoice.user_id}")
-    
-    # Get the most recently updated settings
-    settings = None
-    if all_settings:
-        # Sort by updated_at (newest first)
-        sorted_settings = sorted(all_settings, 
-                                key=lambda s: s.updated_at if s.updated_at else s.created_at, 
-                                reverse=True)
-        settings = sorted_settings[0]
-        print(f"Using settings id={settings.id}, company_name={settings.company_name}")
-    else:
-        print(f"No settings found for user {invoice.user_id}")
-    
-    if settings:
-        # Refresh settings to ensure we have the latest data
-        db.refresh(settings)
-    
-    # Debug: Print settings to verify they're being loaded correctly
-    print("PDF Generation - Settings:", {
-        "company_name": settings.company_name if settings else "No settings found",
-        "company_address": settings.company_address if settings else "No address",
-        "company_email": settings.company_email if settings else "No email"
-    })
-    
-    # Create a copy of the invoice to avoid modifying the database object
+    # Create a deep copy of the invoice to avoid modifying the database object
     from copy import deepcopy
     invoice_copy = deepcopy(invoice)
     
-    # Ensure invoice status is properly converted to a string before passing to PDF generator
-    if hasattr(invoice_copy, 'status') and invoice_copy.status:
-        # If it's an enum, get the value
-        if hasattr(invoice_copy.status, 'value'):
-            invoice_copy.status = invoice_copy.status.value
-        # If it's already a string, make sure it's not a dictionary
-        elif isinstance(invoice_copy.status, str) and '{' in invoice_copy.status:
-            invoice_copy.status = 'draft'  # Default fallback
+    # Make a reference to the customer to ensure it's available in the PDF generator
+    customer = invoice.customer
+    invoice_copy.customer = customer
+    
+    # Force the status to be a simple string, completely replacing the Enum object
+    # Extract the raw status value and convert it to a simple string
+    if hasattr(invoice.status, 'value'):
+        # If it's an enum
+        raw_status = invoice.status.value
+    else:
+        # Otherwise, convert to string and clean up
+        raw_status = str(invoice.status).lower()
+        if '{' in raw_status:
+            raw_status = 'draft'
+    
+    # Replace the entire status attribute with a simple string
+    # This completely replaces the Enum object with a string
+    invoice_copy.status = raw_status
+    
+    print(f"DEBUG - Final status type: {type(invoice_copy.status)}")
+    print(f"DEBUG - Final status value: {invoice_copy.status}")
     
     # Generate PDF
     pdf_bytes = generate_pdf(invoice_copy, settings)

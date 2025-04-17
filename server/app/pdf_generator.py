@@ -57,6 +57,8 @@ def create_footer(canvas, doc, settings):
 
 def _truncate_text(text, max_length):
     """Helper function to truncate text to a maximum length"""
+    if not text:
+        return ""
     if len(text) > max_length:
         return text[:max_length-3] + '...'
     return text
@@ -232,14 +234,14 @@ def generate_pdf(invoice, settings):
             
             # Customer address with paragraph wrapping
             Paragraph(
-                f"<font size='10'><b>{invoice.customer.name if hasattr(invoice, 'customer') else ''}</b></font><br/>" +
-                f"<b>{invoice.customer.company if hasattr(invoice, 'customer') else ''}</b><br/>" +
-                f"{invoice.customer.address if hasattr(invoice, 'customer') else ''}<br/>" +
-                f"{invoice.customer.city if hasattr(invoice, 'customer') else ''}, " +
-                f"{invoice.customer.state if hasattr(invoice, 'customer') else ''} " +
-                f"{invoice.customer.zip_code if hasattr(invoice, 'customer') else ''}<br/>" +
-                f"{invoice.customer.country if hasattr(invoice, 'customer') else ''}<br/>" +
-                f"Email: {invoice.customer.email if hasattr(invoice, 'customer') else ''}",
+                f"<font size='10'><b>{invoice.customer.name if hasattr(invoice, 'customer') and invoice.customer else ''}</b></font><br/>" +
+                f"<b>{invoice.customer.company if hasattr(invoice, 'customer') and invoice.customer else ''}</b><br/>" +
+                f"{invoice.customer.address if hasattr(invoice, 'customer') and invoice.customer else ''}<br/>" +
+                f"{invoice.customer.city if hasattr(invoice, 'customer') and invoice.customer else ''}, " +
+                f"{invoice.customer.state if hasattr(invoice, 'customer') and invoice.customer else ''} " +
+                f"{invoice.customer.zip_code if hasattr(invoice, 'customer') and invoice.customer else ''}<br/>" +
+                f"{invoice.customer.country if hasattr(invoice, 'customer') and invoice.customer else ''}<br/>" +
+                f"Email: {invoice.customer.email if hasattr(invoice, 'customer') and invoice.customer else ''}",
                 styles['Normal']
             )
         ]
@@ -259,22 +261,38 @@ def generate_pdf(invoice, settings):
     # Invoice Details: Date, number, status
     # Extract the raw status value using multiple fallback methods
     try:
+        print(f"DEBUG - Initial invoice status type: {type(invoice.status)}")
+        print(f"DEBUG - Initial invoice status value: {invoice.status}")
+        
         # First check if status is directly a string
         if isinstance(invoice.status, str):
             status_value = invoice.status.lower()
+            print(f"DEBUG - Status is string: {status_value}")
         # Then check if it has a value attribute (Enum)
         elif hasattr(invoice.status, 'value'):
             status_value = invoice.status.value
+            print(f"DEBUG - Status has value attribute: {status_value}")
         # Then check if it has a name attribute (another Enum format)
         elif hasattr(invoice.status, 'name'):
             status_value = invoice.status.name.lower()
+            print(f"DEBUG - Status has name attribute: {status_value}")
         # Fallback to string conversion
         else:
             status_value = str(invoice.status).lower()
-            
+            print(f"DEBUG - Status converted to string: {status_value}")
+        
         # Clean up the status value if it's still not clean
         if isinstance(status_value, dict) or '{' in str(status_value):
             # If somehow we got a dictionary, use a default value
+            print(f"DEBUG - Status contains dict or curly braces, defaulting to 'draft'")
+            status_value = 'draft'
+        
+        # Remove any unwanted characters that might be present in the status
+        status_value = status_value.replace("'", "").replace('"', '').strip()
+        
+        # Extra aggressive clean-up to handle persistent dictionary-like strings
+        if '{' in status_value:
+            print(f"DEBUG - Status still contains curly braces after cleanup, defaulting to 'draft'")
             status_value = 'draft'
     except Exception as e:
         print(f"Error extracting status value: {e}")
@@ -293,8 +311,9 @@ def generate_pdf(invoice, settings):
     status_translation = status_translations.get(status_value, status_value.upper())
     
     # Final safety check - ensure we have a string, not a dict
-    if not isinstance(status_translation, str) or '{' in status_translation:
-        status_translation = status_value.upper()
+    if not isinstance(status_translation, str) or '{' in str(status_translation):
+        print(f"DEBUG - Final status check failed, defaulting to hardcoded value")
+        status_translation = 'ENTWURF' if language == 'de' else 'DRAFT'
     
     # Prepare translated labels
     number_label = get_translation('invoice.number', language)
@@ -313,14 +332,13 @@ def generate_pdf(invoice, settings):
     )
     
     # Debug print to help diagnose status issues
-    print(f"Invoice status debug - Raw value: {status_value}, Translated: {status_translation}")
+    print(f"Invoice status debug - Raw value: '{status_value}', Translated: '{status_translation}'")
     
-    # Create invoice details with paragraphs for wrapping - IMPORTANT: Do not include the raw status value in the PDF
+    # Create invoice details with paragraphs for wrapping - IMPORTANT: Use the translated status, not the raw object
     invoice_details = [
         [Paragraph(f"{number_label}:", styles['Normal']), Paragraph(invoice.invoice_number, styles['Normal'])],
         [Paragraph(f"{date_label}:", styles['Normal']), Paragraph(issue_date, styles['Normal'])],
         [Paragraph(f"{due_date_label}:", styles['Normal']), Paragraph(due_date, styles['Normal'])],
-        # Only show the translated status, not the raw status object
         [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(f"{status_translation}", styles['Normal'])]
     ]
     
