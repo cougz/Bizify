@@ -315,12 +315,13 @@ def generate_pdf(invoice, settings):
     # Debug print to help diagnose status issues
     print(f"Invoice status debug - Raw value: {status_value}, Translated: {status_translation}")
     
-    # Create invoice details with paragraphs for wrapping
+    # Create invoice details with paragraphs for wrapping - IMPORTANT: Do not include the raw status value in the PDF
     invoice_details = [
         [Paragraph(f"{number_label}:", styles['Normal']), Paragraph(invoice.invoice_number, styles['Normal'])],
         [Paragraph(f"{date_label}:", styles['Normal']), Paragraph(issue_date, styles['Normal'])],
         [Paragraph(f"{due_date_label}:", styles['Normal']), Paragraph(due_date, styles['Normal'])],
-        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(status_translation, styles['Normal'])]
+        # Only show the translated status, not the raw status object
+        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(f"{status_translation}", styles['Normal'])]
     ]
     
     # Adjust column widths based on language - German needs more space for labels

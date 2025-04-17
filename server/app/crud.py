@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc, extract
+import sqlalchemy.orm
 from datetime import datetime, timedelta
 import io
 from typing import List, Optional
@@ -282,7 +283,13 @@ def delete_invoice(db: Session, invoice_id: int):
 
 def generate_invoice_pdf(db: Session, invoice_id: int):
     # Get invoice with related data and eager load the customer relationship
-    invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
+    invoice = db.query(models.Invoice).options(
+        # Eagerly load the customer relationship to avoid DetachedInstanceError
+        joinedload(models.Invoice.customer),
+        # Eagerly load the items relationship
+        joinedload(models.Invoice.items)
+    ).filter(models.Invoice.id == invoice_id).first()
+    
     if not invoice:
         return None
     
