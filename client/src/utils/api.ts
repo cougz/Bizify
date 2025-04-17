@@ -185,6 +185,7 @@ export const dashboardAPI = {
 export const settingsAPI = {
   get: () => api.get('/settings'),
   update: (data: any) => api.put('/settings', data),
+  reset: () => api.post('/settings/reset'),
 };
 
 export default api;

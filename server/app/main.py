@@ -261,6 +261,20 @@ def update_settings(
         return crud.create_settings(db=db, settings=settings, user_id=current_user.id)
     return crud.update_settings(db=db, settings=settings, user_id=current_user.id)
 
+@app.post("/api/settings/reset")
+def reset_user_data(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Reset all user data to defaults:
+    - Delete all invoices and invoice items
+    - Delete all customers
+    - Delete all settings
+    - Create default settings
+    """
+    return crud.reset_user_data(db=db, user_id=current_user.id)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -525,6 +525,64 @@ def create_settings(db: Session, settings: schemas.SettingsCreate, user_id: int)
     db.refresh(db_settings)
     return db_settings
 
+# Reset user data
+def reset_user_data(db: Session, user_id: int):
+    """
+    Reset all data for a user:
+    - Delete all invoices and invoice items
+    - Delete all customers
+    - Delete all settings
+    - Create default settings
+    """
+    try:
+        # Delete all invoices (cascade will delete invoice items)
+        invoices = db.query(models.Invoice).filter(models.Invoice.user_id == user_id).all()
+        for invoice in invoices:
+            db.delete(invoice)
+        
+        # Delete all customers
+        customers = db.query(models.Customer).filter(models.Customer.user_id == user_id).all()
+        for customer in customers:
+            db.delete(customer)
+        
+        # Delete all settings
+        settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).all()
+        for setting in settings:
+            db.delete(setting)
+        
+        # Commit the deletions
+        db.commit()
+        
+        # Create default settings
+        default_settings = models.Settings(
+            user_id=user_id,
+            company_name="Your Company",
+            company_address="123 Main St",
+            company_city="Your City",
+            company_state="Your State",
+            company_zip="12345",
+            company_country="Your Country",
+            company_phone="(123) 456-7890",
+            company_email="info@yourcompany.com",
+            company_website="www.yourcompany.com",
+            tax_rate=10.0,
+            currency="USD",
+            invoice_prefix="INV-",
+            invoice_footer="Thank you for your business!",
+            bank_name="",
+            bank_iban="",
+            bank_bic=""
+        )
+        db.add(default_settings)
+        db.commit()
+        db.refresh(default_settings)
+        
+        return {"status": "success", "message": "All data has been reset to defaults"}
+    except Exception as e:
+        db.rollback()
+        print(f"Error resetting user data: {e}")
+        raise
+
 def update_settings(db: Session, settings: schemas.SettingsUpdate, user_id: int):
     # Get all settings for this user
     all_settings = db.query(models.Settings).filter(models.Settings.user_id == user_id).all()

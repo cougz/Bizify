@@ -47,8 +47,11 @@ const Settings: React.FC = () => {
   
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
+  const [resetting, setResetting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [resetConfirmText, setResetConfirmText] = useState<string>('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -451,17 +454,100 @@ const Settings: React.FC = () => {
           </div>
         </Card>
         
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-end space-x-4">
           <Button
             type="submit"
             variant="primary"
             loading={saving}
-            disabled={saving}
+            disabled={saving || resetting}
           >
             Save Settings
           </Button>
         </div>
       </form>
+      
+      {/* Reset Data Card */}
+      <Card className="mt-6 bg-red-50">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-red-800 mb-4">Reset All Data</h2>
+          <p className="text-red-700 mb-4">
+            This will delete all your customers, invoices, and reset your settings to default values. 
+            This action cannot be undone.
+          </p>
+          
+          {!showResetConfirm ? (
+            <Button
+              type="button"
+              variant="danger"
+              loading={resetting}
+              disabled={resetting || saving}
+              onClick={() => setShowResetConfirm(true)}
+            >
+              Reset All Data
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-red-700 font-medium">
+                To confirm, please type "RESET" in the field below:
+              </p>
+              <div className="flex items-center space-x-4">
+                <input
+                  type="text"
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  className="px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                  placeholder="Type RESET to confirm"
+                />
+                <Button
+                  type="button"
+                  variant="danger"
+                  loading={resetting}
+                  disabled={resetting || resetConfirmText !== "RESET"}
+                  onClick={async () => {
+                    try {
+                      setResetting(true);
+                      setError('');
+                      
+                      // Import the settingsAPI
+                      const { settingsAPI } = await import('../utils/api');
+                      
+                      // Reset all data
+                      const response = await settingsAPI.reset();
+                      
+                      // Reset the confirmation dialog
+                      setShowResetConfirm(false);
+                      setResetConfirmText('');
+                      
+                      // Reload settings
+                      const settingsResponse = await settingsAPI.get();
+                      setSettings(settingsResponse.data);
+                      
+                      setSuccess('All data has been reset to defaults');
+                    } catch (err) {
+                      setError('Failed to reset data');
+                      console.error(err);
+                    } finally {
+                      setResetting(false);
+                    }
+                  }}
+                >
+                  Confirm Reset
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowResetConfirm(false);
+                    setResetConfirmText('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
