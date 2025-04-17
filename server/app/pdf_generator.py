@@ -234,14 +234,36 @@ def generate_pdf(invoice, settings):
     elements.append(Spacer(1, 0.25*inch))
     
     # Add invoice details with modern styling
-    # Extract status value as string
-    status_value = invoice.status.value if hasattr(invoice.status, 'value') else str(invoice.status)
+    # Extract status value as string, ensuring we get just the raw value (draft, pending, etc.)
+    if hasattr(invoice.status, 'value'):
+        status_value = invoice.status.value
+    elif hasattr(invoice.status, 'name'):
+        status_value = invoice.status.name.lower()
+    else:
+        status_value = str(invoice.status).lower()
+    
+    # Get the translation for this specific status
+    try:
+        # First get the status translations dictionary
+        status_translations = get_translation('invoice.status', language)
+        # Then get the specific translation for this status
+        if isinstance(status_translations, dict) and status_value in status_translations:
+            status_translation = status_translations[status_value]
+        else:
+            # Fallback: try direct path
+            status_translation = get_translation(f"invoice.status.{status_value}", language)
+            # If that fails, just use the status value
+            if status_translation == f"invoice.status.{status_value}":
+                status_translation = status_value.upper()
+    except Exception as e:
+        print(f"Error translating status: {e}")
+        status_translation = status_value.upper()
     
     invoice_details = [
         [f"{get_translation('invoice.number', language)}:", invoice.invoice_number],
         [f"{get_translation('invoice.date', language)}:", format_date(datetime.fromisoformat(invoice.issue_date) if isinstance(invoice.issue_date, str) else invoice.issue_date, language)],
         [f"{get_translation('invoice.due_date', language)}:", format_date(datetime.fromisoformat(invoice.due_date) if isinstance(invoice.due_date, str) else invoice.due_date, language)],
-        [f"{get_translation('invoice.status', language)}:", get_translation(f"invoice.status.{status_value}", language)]
+        [f"{get_translation('invoice.status', language)}:", status_translation]
     ]
     
     # Adjust column widths to accommodate longer German text
