@@ -19,9 +19,9 @@ try:
     # Add the server directory to the path so we can import the migrations module
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
-    # Import and run the add_bank_details migration
-    from migrations.add_bank_details import run_migration
-    run_migration()
+    # Import and run migrations using the migration manager
+    from app.migration_manager import run_migrations
+    run_migrations()
 except Exception as e:
     print(f"Error running migrations: {e}")
 
@@ -49,7 +49,13 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-# Customer endpoints
+# Version endpoint
+@app.get("/api/version")
+def get_app_version():
+    """Get the current application version"""
+    from app.version import get_version
+    return get_version()
+
 # Helper function to get or create a default user
 def get_default_user(db: Session):
     user = db.query(models.User).first()
