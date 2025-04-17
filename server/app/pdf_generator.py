@@ -37,7 +37,9 @@ def create_footer(canvas, doc, settings):
                      f"{settings.company_zip if settings and settings.company_zip else ''}"
     company_address = _truncate_text(company_address, 70)  # Limit text length
     
-    company_contact = f"{get_translation('phone', language)}: {settings.company_phone if settings and settings.company_phone else ''} | " + \
+    # Use hardcoded translations for common terms to avoid translation issues
+    phone_label = "Telefon" if language == 'de' else "Phone"
+    company_contact = f"{phone_label}: {settings.company_phone if settings and settings.company_phone else ''} | " + \
                      f"Email: {settings.company_email if settings and settings.company_email else ''}"
     company_contact = _truncate_text(company_contact, 70)  # Limit text length
     
@@ -224,7 +226,7 @@ def generate_pdf(invoice, settings):
                 f"{settings.company_zip if settings and settings.company_zip else ''}<br/>" +
                 f"{settings.company_country if settings and settings.company_country else ''}<br/>" +
                 f"{settings.company_email if settings and settings.company_email else ''}<br/>" +
-                f"{get_translation('phone', language)}: {settings.company_phone if settings and settings.company_phone else ''}",
+                f"{'Telefon' if language == 'de' else 'Phone'}: {settings.company_phone if settings and settings.company_phone else ''}",
                 styles['Normal']
             ),
             
@@ -309,6 +311,9 @@ def generate_pdf(invoice, settings):
         datetime.fromisoformat(invoice.due_date) if isinstance(invoice.due_date, str) else invoice.due_date, 
         language
     )
+    
+    # Debug print to help diagnose status issues
+    print(f"Invoice status debug - Raw value: {status_value}, Translated: {status_translation}")
     
     # Create invoice details with paragraphs for wrapping
     invoice_details = [
