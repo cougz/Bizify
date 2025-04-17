@@ -263,15 +263,23 @@ def generate_pdf(invoice, settings):
     else:
         status_value = str(invoice.status).lower()
     
-    # Get status translation
+    # Get status translation - handle the specific path for status translations
     try:
-        status_translations = get_translation('invoice.status', language)
-        if isinstance(status_translations, dict) and status_value in status_translations:
-            status_translation = status_translations[status_value]
+        # Get the translation dictionary for all statuses
+        all_status_translations = get_translation('invoice.status', language)
+        
+        # If we got a dictionary and our status exists in it, use that translation
+        if isinstance(all_status_translations, dict) and status_value in all_status_translations:
+            status_translation = all_status_translations[status_value]
+        # Otherwise try to get a direct translation
         else:
-            status_translation = get_translation(f"invoice.status.{status_value}", language)
-            if status_translation == f"invoice.status.{status_value}":
+            status_path = f"invoice.status.{status_value}"
+            direct_translation = get_translation(status_path, language)
+            # If we got back the same path, it failed to translate, so use uppercase status
+            if direct_translation == status_path:
                 status_translation = status_value.upper()
+            else:
+                status_translation = direct_translation
     except Exception as e:
         print(f"Error translating status: {e}")
         status_translation = status_value.upper()
@@ -293,11 +301,12 @@ def generate_pdf(invoice, settings):
     )
     
     # Create invoice details with paragraphs for wrapping
+    # Make sure the dictionary of translations doesn't appear in the invoice
     invoice_details = [
         [Paragraph(f"{number_label}:", styles['Normal']), Paragraph(invoice.invoice_number, styles['Normal'])],
         [Paragraph(f"{date_label}:", styles['Normal']), Paragraph(issue_date, styles['Normal'])],
         [Paragraph(f"{due_date_label}:", styles['Normal']), Paragraph(due_date, styles['Normal'])],
-        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(status_translation, styles['Normal'])]
+        [Paragraph(f"{status_label}:", styles['Normal']), Paragraph(str(status_translation), styles['Normal'])]
     ]
     
     # Adjust column widths based on language - German needs more space for labels
