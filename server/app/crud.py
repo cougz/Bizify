@@ -316,8 +316,21 @@ def generate_invoice_pdf(db: Session, invoice_id: int):
         "company_email": settings.company_email if settings else "No email"
     })
     
+    # Create a copy of the invoice to avoid modifying the database object
+    from copy import deepcopy
+    invoice_copy = deepcopy(invoice)
+    
+    # Ensure invoice status is properly converted to a string before passing to PDF generator
+    if hasattr(invoice_copy, 'status') and invoice_copy.status:
+        # If it's an enum, get the value
+        if hasattr(invoice_copy.status, 'value'):
+            invoice_copy.status = invoice_copy.status.value
+        # If it's already a string, make sure it's not a dictionary
+        elif isinstance(invoice_copy.status, str) and '{' in invoice_copy.status:
+            invoice_copy.status = 'draft'  # Default fallback
+    
     # Generate PDF
-    pdf_bytes = generate_pdf(invoice, settings)
+    pdf_bytes = generate_pdf(invoice_copy, settings)
     
     return pdf_bytes
 
