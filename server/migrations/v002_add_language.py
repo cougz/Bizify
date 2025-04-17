@@ -2,7 +2,7 @@
 Migration to add language column to settings table
 """
 from sqlalchemy import create_engine, MetaData, Table, Column, String
-from app.database import SQLALCHEMY_DATABASE_URL
+from app.database import DATABASE_URL
 
 def run_migration():
     """
@@ -11,7 +11,7 @@ def run_migration():
     print("Running migration: v002_add_language.py")
     
     # Create engine and connect to the database
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    engine = create_engine(DATABASE_URL)
     conn = engine.connect()
     
     # Create metadata object

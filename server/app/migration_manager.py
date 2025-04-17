@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
-from app.database import SQLALCHEMY_DATABASE_URL, engine, SessionLocal
+from app.database import DATABASE_URL, engine, SessionLocal
 from app.version import get_version, update_version
 
 logger = logging.getLogger(__name__)
