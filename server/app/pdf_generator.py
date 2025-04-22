@@ -267,37 +267,30 @@ def generate_pdf(invoice, settings):
         # First check if status is directly a string
         if isinstance(invoice.status, str):
             status_value = invoice.status.lower()
-            print(f"DEBUG - Status is string: {status_value}")
         # Then check if it has a value attribute (Enum)
         elif hasattr(invoice.status, 'value'):
             status_value = invoice.status.value
-            print(f"DEBUG - Status has value attribute: {status_value}")
         # Then check if it has a name attribute (another Enum format)
         elif hasattr(invoice.status, 'name'):
             status_value = invoice.status.name.lower()
-            print(f"DEBUG - Status has name attribute: {status_value}")
         # Fallback to string conversion
         else:
-            status_value = str(invoice.status).lower()
-            print(f"DEBUG - Status converted to string: {status_value}")
+            status_string = str(invoice.status).lower()
+            # If it's a dictionary-like string, extract just the status name
+            if '{' in status_string:
+                # Default to 'draft' if we can't parse it
+                status_value = 'draft'
+            else:
+                status_value = status_string
         
-        # Clean up the status value if it's still not clean
-        if isinstance(status_value, dict) or '{' in str(status_value):
-            # If somehow we got a dictionary, use a default value
-            print(f"DEBUG - Status contains dict or curly braces, defaulting to 'draft'")
-            status_value = 'draft'
-        
-        # Remove any unwanted characters that might be present in the status
+        # Clean up the status value
         status_value = status_value.replace("'", "").replace('"', '').strip()
         
-        # Extra aggressive clean-up to handle persistent dictionary-like strings
-        if '{' in status_value:
-            print(f"DEBUG - Status still contains curly braces after cleanup, defaulting to 'draft'")
-            status_value = 'draft'
+        print(f"DEBUG - Extracted status value: {status_value}")
     except Exception as e:
         print(f"Error extracting status value: {e}")
         status_value = 'draft'  # Default fallback
-    
+
     # Direct hardcoded translations to avoid any dictionary issues
     status_translations = {
         'draft': 'ENTWURF' if language == 'de' else 'DRAFT',
@@ -306,20 +299,19 @@ def generate_pdf(invoice, settings):
         'overdue': 'ÜBERFÄLLIG' if language == 'de' else 'OVERDUE',
         'cancelled': 'STORNIERT' if language == 'de' else 'CANCELLED'
     }
-    
+
     # Get the specific translated status with fallback
     status_translation = status_translations.get(status_value, status_value.upper())
-    
+
     # Final safety check - ensure we have a string, not a dict
     if not isinstance(status_translation, str) or '{' in str(status_translation):
-        print(f"DEBUG - Final status check failed, defaulting to hardcoded value")
         status_translation = 'ENTWURF' if language == 'de' else 'DRAFT'
     
     # Prepare translated labels
     number_label = get_translation('invoice.number', language)
     date_label = get_translation('invoice.date', language)
     due_date_label = get_translation('invoice.due_date', language)
-    status_label = get_translation('invoice.status', language)
+    status_label = "Status" if language == 'en' else "Status"  # Hardcoded to prevent dictionary issues
     
     # Format dates for display
     issue_date = format_date(
