@@ -1,8 +1,15 @@
 # Bizify - Invoice Management System
 
+![Bizify Logo](assets/logo.jpg)
+
 Bizify is a comprehensive invoice management system that helps businesses create, manage, and track invoices and customers efficiently. With a modern interface and powerful features, Bizify streamlines your invoicing workflow.
 
-## Features
+## 📸 Screenshots
+
+![Dashboard Screenshot](assets/screenshot-dashboard.png)
+![Invoice Management Screenshot](assets/screenshot-invoices.png)
+
+## ✨ Features
 
 - **Customer Management**: Add, edit, and delete customer information
 - **Invoice Creation**: Create professional invoices with line items, taxes, and discounts
@@ -11,8 +18,9 @@ Bizify is a comprehensive invoice management system that helps businesses create
 - **Dark Mode**: Toggle between light and dark themes
 - **Responsive Design**: Works on desktop and mobile devices
 - **User Settings**: Customize your company information and preferences
+- **Multi-language Support**: Available in English and German
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -23,18 +31,23 @@ Bizify is a comprehensive invoice management system that helps businesses create
 
 1. Clone the repository:
    ```
-   git clone https://github.com/cougz/Bizify.git
+   git clone https://github.com/yourusername/Bizify.git
    cd Bizify
    ```
 
-2. Start the application:
+2. Start the application (first time):
+   ```
+   docker compose up -d --build
+   ```
+
+   This will build the containers, start the PostgreSQL database, backend API, and frontend services.
+
+3. For subsequent starts:
    ```
    docker compose up -d
    ```
 
-   This will start the PostgreSQL database, backend API, and frontend services.
-
-3. Access the application:
+4. Access the application:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
 
@@ -46,7 +59,7 @@ When you first access the application, you'll need to:
 2. Set up your company information in the Settings page
 3. Start adding customers and creating invoices
 
-## Architecture
+## 🏗️ Architecture
 
 Bizify consists of three main components:
 
@@ -54,7 +67,15 @@ Bizify consists of three main components:
 2. **Backend API**: Built with FastAPI (Python)
 3. **Frontend**: Built with React, TypeScript, and Tailwind CSS
 
-## Development
+```
+├── client/           # React frontend
+├── server/           # FastAPI backend
+├── docker/           # Dockerfiles
+├── compose.yaml      # Docker Compose configuration
+└── assets/           # Images for README and documentation
+```
+
+## 💻 Development
 
 ### Backend Development
 
@@ -80,13 +101,23 @@ npm install
 npm start
 ```
 
-## Deployment
+## 🚢 Deployment
 
 The application can be deployed using Docker Compose or Kubernetes:
 
 - For Docker Compose deployment, use the provided `compose.yaml` file
 - For Kubernetes deployment, use the configuration files in the `k8s` directory
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
