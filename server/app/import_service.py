@@ -165,6 +165,17 @@ class ImportService:
                     options.update_existing
                 )
             
+            # Check if we have critical errors that should prevent commit
+            if self.errors:
+                self.db.rollback()
+                return schemas.ImportResult(
+                    success=False,
+                    message=f"Import failed with {len(self.errors)} error(s)",
+                    stats=self.import_stats,
+                    errors=self.errors,
+                    warnings=self.warnings
+                )
+            
             # Commit transaction
             self.db.commit()
             
@@ -190,12 +201,24 @@ class ImportService:
             )
             
         except Exception as e:
-            self.db.rollback()
+            # Rollback the transaction
+            try:
+                self.db.rollback()
+            except Exception:
+                # If rollback fails, the session is in an unusable state
+                # This typically means the connection is broken
+                pass
+            
+            # Add the main error if not already present in self.errors
+            error_msg = str(e)
+            if error_msg not in self.errors:
+                self.errors.append(error_msg)
+            
             return schemas.ImportResult(
                 success=False,
-                message=f"Import failed: {str(e)}",
+                message=f"Import failed: {error_msg}",
                 stats=self.import_stats,
-                errors=self.errors + [str(e)],
+                errors=self.errors,
                 warnings=self.warnings
             )
     
@@ -279,37 +302,55 @@ class ImportService:
     def _import_settings(self, settings_data: Dict[str, Any]):
         """Import company settings"""
         try:
-            # Delete existing settings
+            # Check if settings already exist
             existing_settings = self.db.query(models.Settings).filter(
                 models.Settings.user_id == self.user_id
-            ).all()
-            for setting in existing_settings:
-                self.db.delete(setting)
+            ).first()
             
-            # Create new settings
-            new_settings = models.Settings(
-                user_id=self.user_id,
-                company_name=settings_data.get("company_name"),
-                company_address=settings_data.get("company_address"),
-                company_city=settings_data.get("company_city"),
-                company_state=settings_data.get("company_state"),
-                company_zip=settings_data.get("company_zip"),
-                company_country=settings_data.get("company_country"),
-                company_phone=settings_data.get("company_phone"),
-                company_email=settings_data.get("company_email"),
-                company_website=settings_data.get("company_website"),
-                tax_rate=settings_data.get("tax_rate", 0.0),
-                currency=settings_data.get("currency", "USD"),
-                invoice_prefix=settings_data.get("invoice_prefix", "INV-"),
-                invoice_footer=settings_data.get("invoice_footer"),
-                bank_name=settings_data.get("bank_name"),
-                bank_iban=settings_data.get("bank_iban"),
-                bank_bic=settings_data.get("bank_bic"),
-                language=settings_data.get("language", "en")
-            )
-            self.db.add(new_settings)
+            if existing_settings:
+                # Update existing settings
+                existing_settings.company_name = settings_data.get("company_name")
+                existing_settings.company_address = settings_data.get("company_address")
+                existing_settings.company_city = settings_data.get("company_city")
+                existing_settings.company_state = settings_data.get("company_state")
+                existing_settings.company_zip = settings_data.get("company_zip")
+                existing_settings.company_country = settings_data.get("company_country")
+                existing_settings.company_phone = settings_data.get("company_phone")
+                existing_settings.company_email = settings_data.get("company_email")
+                existing_settings.company_website = settings_data.get("company_website")
+                existing_settings.tax_rate = settings_data.get("tax_rate", 0.0)
+                existing_settings.currency = settings_data.get("currency", "USD")
+                existing_settings.invoice_prefix = settings_data.get("invoice_prefix", "INV-")
+                existing_settings.invoice_footer = settings_data.get("invoice_footer")
+                existing_settings.bank_name = settings_data.get("bank_name")
+                existing_settings.bank_iban = settings_data.get("bank_iban")
+                existing_settings.bank_bic = settings_data.get("bank_bic")
+                existing_settings.language = settings_data.get("language", "en")
+            else:
+                # Create new settings
+                new_settings = models.Settings(
+                    user_id=self.user_id,
+                    company_name=settings_data.get("company_name"),
+                    company_address=settings_data.get("company_address"),
+                    company_city=settings_data.get("company_city"),
+                    company_state=settings_data.get("company_state"),
+                    company_zip=settings_data.get("company_zip"),
+                    company_country=settings_data.get("company_country"),
+                    company_phone=settings_data.get("company_phone"),
+                    company_email=settings_data.get("company_email"),
+                    company_website=settings_data.get("company_website"),
+                    tax_rate=settings_data.get("tax_rate", 0.0),
+                    currency=settings_data.get("currency", "USD"),
+                    invoice_prefix=settings_data.get("invoice_prefix", "INV-"),
+                    invoice_footer=settings_data.get("invoice_footer"),
+                    bank_name=settings_data.get("bank_name"),
+                    bank_iban=settings_data.get("bank_iban"),
+                    bank_bic=settings_data.get("bank_bic"),
+                    language=settings_data.get("language", "en")
+                )
+                self.db.add(new_settings)
+            
             self.db.flush()
-            
             self.import_stats.settings_updated = True
             
         except Exception as e:
