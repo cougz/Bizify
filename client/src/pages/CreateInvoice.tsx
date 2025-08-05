@@ -6,6 +6,7 @@ import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { customersAPI, invoicesAPI, settingsAPI } from '../utils/api';
+import { formatCurrency } from '../utils/formatters';
 
 interface Customer {
   id: string;
@@ -264,12 +265,6 @@ const CreateInvoice: React.FC = () => {
     );
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
-    }).format(value);
-  };
 
   return (
     <div className="space-y-6">
@@ -470,7 +465,7 @@ const CreateInvoice: React.FC = () => {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {formatCurrency(item.amount || 0)}
+                        {formatCurrency(item.amount || 0, currency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
@@ -492,19 +487,19 @@ const CreateInvoice: React.FC = () => {
               <div className="w-full md:w-1/3 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Subtotal:</span>
-                  <span className="text-sm font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+                  <span className="text-sm font-medium text-gray-900">{formatCurrency(subtotal, currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Tax ({invoice.tax_rate}%):</span>
-                  <span className="text-sm font-medium text-gray-900">{formatCurrency(taxAmount)}</span>
+                  <span className="text-sm font-medium text-gray-900">{formatCurrency(taxAmount, currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Discount ({invoice.discount_percent}%):</span>
-                  <span className="text-sm font-medium text-gray-900">-{formatCurrency(subtotal * invoice.discount_percent / 100)}</span>
+                  <span className="text-sm font-medium text-gray-900">-{formatCurrency(subtotal * invoice.discount_percent / 100, currency)}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-base font-medium text-gray-900">Total:</span>
-                  <span className="text-base font-bold text-gray-900">{formatCurrency(total)}</span>
+                  <span className="text-base font-bold text-gray-900">{formatCurrency(total, currency)}</span>
                 </div>
               </div>
             </div>

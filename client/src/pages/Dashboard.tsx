@@ -6,7 +6,8 @@ import StatCard from '../components/StatCard';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { dashboardAPI } from '../utils/api';
+import { dashboardAPI, settingsAPI } from '../utils/api';
+import { formatCurrency } from '../utils/formatters';
 
 interface DashboardData {
   total_customers: number;
@@ -27,14 +28,21 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [currency, setCurrency] = useState<string>('USD');
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch real data from the API
-        const response = await dashboardAPI.getData();
-        setData(response.data);
+        
+        // Fetch both dashboard data and settings in parallel
+        const [dashboardResponse, settingsResponse] = await Promise.all([
+          dashboardAPI.getData(),
+          settingsAPI.get()
+        ]);
+        
+        setData(dashboardResponse.data);
+        setCurrency(settingsResponse.data.currency || 'USD');
         setError('');
       } catch (err) {
         setError('Failed to load dashboard data');
@@ -67,7 +75,7 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    fetchDashboardData();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -86,12 +94,6 @@ const Dashboard: React.FC = () => {
     return <div>No data available</div>;
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value);
-  };
 
   return (
     <div className="space-y-6">
@@ -117,7 +119,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
           title="Total Revenue" 
-          value={formatCurrency(data.total_revenue)}
+          value={formatCurrency(data.total_revenue, currency)}
           icon={<FiDollarSign className="h-6 w-6 text-green-500" />}
           change={data.revenue_change}
           trend={data.revenue_change >= 0 ? 'up' : 'down'}

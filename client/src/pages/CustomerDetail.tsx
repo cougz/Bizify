@@ -7,7 +7,7 @@ import Button from '../components/Button';
 import StatusBadge from '../components/StatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { customersAPI, invoicesAPI } from '../utils/api';
+import { customersAPI, invoicesAPI, settingsAPI } from '../utils/api';
 
 interface Customer {
   id: string;
@@ -42,6 +42,7 @@ const CustomerDetail: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [currency, setCurrency] = useState<string>('USD');
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -54,13 +55,16 @@ const CustomerDetail: React.FC = () => {
           return;
         }
         
-        // Fetch customer data from API
-        const customerResponse = await customersAPI.getById(id);
-        setCustomer(customerResponse.data);
+        // Fetch customer data, invoices, and settings in parallel
+        const [customerResponse, invoicesResponse, settingsResponse] = await Promise.all([
+          customersAPI.getById(id),
+          invoicesAPI.getAll(),
+          settingsAPI.get()
+        ]);
         
-        // Fetch all invoices from API
-        // In a real app, the backend would filter invoices by customer_id
-        const invoicesResponse = await invoicesAPI.getAll();
+        setCustomer(customerResponse.data);
+        setCurrency(settingsResponse.data.currency || 'USD');
+        
         // Filter invoices for this customer on the client side
         const customerInvoices = invoicesResponse.data.filter(
           (invoice: any) => invoice.customer_id === id
@@ -255,7 +259,7 @@ const CustomerDetail: React.FC = () => {
                     <StatusBadge status={invoice.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(invoice.total)}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(invoice.total, currency)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button 

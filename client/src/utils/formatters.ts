@@ -18,10 +18,21 @@ export const formatDate = (dateString: string): string => {
  * Format a number as currency
  * @param value Number to format
  * @param currency Currency code (default: 'USD')
- * @returns Formatted currency string (e.g., "$1,234.56")
+ * @returns Formatted currency string (e.g., "$1,234.56" or "1.234,56 €")
  */
 export const formatCurrency = (value: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
+  // Map currency to appropriate locale for better formatting
+  const localeMap: { [key: string]: string } = {
+    'USD': 'en-US',
+    'EUR': 'de-DE',
+    'GBP': 'en-GB',
+    'CAD': 'en-CA',
+    'AUD': 'en-AU'
+  };
+  
+  const locale = localeMap[currency] || 'en-US';
+  
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
