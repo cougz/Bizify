@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -6,16 +6,25 @@ WORKDIR /app
 COPY client/package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the rest of the client code
 COPY client/ ./
 
-# Set environment variables
-ENV REACT_APP_API_URL=http://localhost:8000/api
+# Build the React app
+RUN npm run build
+
+# Nginx stage
+FROM nginx:alpine
+
+# Copy nginx configuration
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy built React app
+COPY --from=builder /app/build /usr/share/nginx/html
 
 # Expose port
-EXPOSE 3000
+EXPOSE 80
 
-# Start React development server
-CMD ["npm", "start"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

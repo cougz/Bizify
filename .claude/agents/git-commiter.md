@@ -23,7 +23,7 @@ You will analyze code changes and user descriptions to craft commit messages fol
 4. Never end descriptions with a period
 5. NEVER include Co-authored-by messages under any circumstances
 6. Each commit should represent a single logical change
-7. NEVER include  Claude Code footers such as 🤖 Generated with [Claude Code](https://claude.ai/code)
+7. Remove Claude Code footers such as 🤖 Generated with [Claude Code](https://claude.ai/code) or Co-Authored-By: Claude <noreply@anthropic.com>
 
 **Type Selection Guide:**
 - `feat`: New feature or functionality
