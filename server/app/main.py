@@ -29,13 +29,53 @@ except Exception as e:
 
 app = FastAPI(title="Bizify API", description="Business Management API", version="0.1.0")
 
-# Add CORS middleware
+# Configure CORS based on environment variables
+def get_cors_origins():
+    """Get CORS allowed origins from environment variables"""
+    cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+    
+    # Split by comma and strip whitespace
+    if cors_origins == "*":
+        return ["*"]
+    else:
+        return [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+
+def get_cors_methods():
+    """Get CORS allowed methods from environment variables"""
+    cors_methods = os.getenv("CORS_METHODS", "GET,POST,PUT,DELETE,OPTIONS")
+    
+    if cors_methods == "*":
+        return ["*"]
+    else:
+        return [method.strip() for method in cors_methods.split(",") if method.strip()]
+
+def get_cors_headers():
+    """Get CORS allowed headers from environment variables"""
+    cors_headers = os.getenv("CORS_HEADERS", "Content-Type,Authorization")
+    
+    if cors_headers == "*":
+        return ["*"]
+    else:
+        return [header.strip() for header in cors_headers.split(",") if header.strip()]
+
+# Add CORS middleware with configurable settings
+cors_origins = get_cors_origins()
+cors_methods = get_cors_methods()
+cors_headers = get_cors_headers()
+cors_credentials = os.getenv("CORS_CREDENTIALS", "true").lower() == "true"
+
+print(f"CORS Configuration:")
+print(f"  Origins: {cors_origins}")
+print(f"  Methods: {cors_methods}")
+print(f"  Headers: {cors_headers}")
+print(f"  Credentials: {cors_credentials}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For security in a real-world scenario, specify exact origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=cors_origins,
+    allow_credentials=cors_credentials,
+    allow_methods=cors_methods,
+    allow_headers=cors_headers,
 )
 
 # Include routers

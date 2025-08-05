@@ -75,6 +75,41 @@ Bizify consists of three main components:
 └── assets/           # Images for README and documentation
 ```
 
+## 🔧 Configuration
+
+### CORS Configuration
+
+Bizify includes configurable Cross-Origin Resource Sharing (CORS) settings to ensure secure communication between your frontend and backend. CORS is crucial for production deployments and can be customized based on your environment.
+
+#### Environment Variables
+
+Configure CORS using these environment variables:
+
+- **`CORS_ORIGINS`**: Comma-separated list of allowed origins (default: `http://localhost:3000,http://127.0.0.1:3000`)
+- **`CORS_METHODS`**: Allowed HTTP methods (default: `GET,POST,PUT,DELETE,OPTIONS`)
+- **`CORS_HEADERS`**: Allowed request headers (default: `Content-Type,Authorization`)
+- **`CORS_CREDENTIALS`**: Allow credentials in requests (default: `true`)
+
+#### Quick Setup
+
+1. **Development (default)**: No changes needed - works with localhost:3000
+2. **Production**: Create a `.env` file or set environment variables:
+   ```bash
+   # Copy example configuration
+   cp .env.example .env
+   
+   # Edit .env with your production domains
+   CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+   ```
+
+#### Security Notes
+
+- ⚠️ **Never use `*` for origins in production** - always specify exact domains
+- ✅ **Use HTTPS** for production origins
+- ✅ **Test CORS configuration** after changes using the provided test script: `./test_cors.sh`
+
+📖 **For detailed CORS configuration guide, see [CORS_CONFIG.md](CORS_CONFIG.md)**
+
 ## 💻 Development
 
 ### Backend Development
@@ -105,8 +140,34 @@ npm start
 
 The application can be deployed using Docker Compose or Kubernetes:
 
-- For Docker Compose deployment, use the provided `compose.yaml` file
-- For Kubernetes deployment, use the configuration files in the `k8s` directory
+### Docker Compose Deployment
+
+1. **Configure environment variables for production**:
+   ```bash
+   # Create production environment file
+   cp .env.example .env
+   
+   # Edit .env with your production settings
+   CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+   CORS_CREDENTIALS=true
+   ```
+
+2. **Deploy with Docker Compose**:
+   ```bash
+   docker compose up -d --build
+   ```
+
+### Kubernetes Deployment
+
+- Use the configuration files in the `k8s` directory
+- Ensure CORS environment variables are properly configured in your deployment manifests
+
+### Production CORS Checklist
+
+- ✅ Set specific domains in `CORS_ORIGINS` (no wildcards)
+- ✅ Use HTTPS origins only
+- ✅ Test CORS configuration with your frontend
+- ✅ Monitor CORS logs on application startup
 
 ## 📄 License
 

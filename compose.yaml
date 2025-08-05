@@ -25,6 +25,11 @@ services:
       DATABASE_URL: postgresql://bizify:bizify_password@postgres:5432/bizify
       SECRET_KEY: your_secret_key_here
       DOCKER_ENV: "true"
+      # CORS Configuration
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      CORS_METHODS: ${CORS_METHODS:-GET,POST,PUT,DELETE,OPTIONS}
+      CORS_HEADERS: ${CORS_HEADERS:-Content-Type,Authorization}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
     ports:
       - "8000:8000"
     depends_on:
