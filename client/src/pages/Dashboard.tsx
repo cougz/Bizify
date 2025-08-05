@@ -220,16 +220,16 @@ const Dashboard: React.FC = () => {
                   
                   return (
                     <div key={index} className="flex flex-col items-center flex-1">
-                      <div className="relative w-full">
-                        {/* Tooltip showing actual value */}
-                        <div className="opacity-0 hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transition-opacity">
+                      <div className="relative w-full group cursor-pointer">
+                        {/* Tooltip showing actual value - triggered by group hover */}
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transition-opacity duration-200">
                           {formatCurrency(item.revenue, currency)}
                         </div>
                         <div 
                           className={`w-full rounded-t transition-all duration-300 ${
                             item.revenue > 0 
-                              ? 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-400 dark:hover:bg-blue-500' 
-                              : 'bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500'
+                              ? 'bg-blue-500 group-hover:bg-blue-600 dark:bg-blue-400 dark:group-hover:bg-blue-500' 
+                              : 'bg-gray-300 group-hover:bg-gray-400 dark:bg-gray-600 dark:group-hover:bg-gray-500'
                           }`}
                           style={{ 
                             height: `${barHeightPx}px`
