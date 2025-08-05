@@ -35,19 +35,21 @@ const Dashboard: React.FC = () => {
     const currentDate = new Date();
     const months = [];
     
-    // Generate last 6 months
+    // Generate last 6 months with varied data to test proportional scaling
+    const sampleRevenues = [1200, 800, 2200, 4500, 3100, 1800]; // Varied amounts
+    
     for (let i = 5; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       months.push({
         month: date.toLocaleDateString('en-US', { month: 'short' }),
-        revenue: Math.floor(Math.random() * 5000) + 1000 // Random revenue between 1000-6000
+        revenue: sampleRevenues[5 - i] // Use predefined varied amounts
       });
     }
     
     return {
       total_customers: 12,
       total_invoices: 45,
-      total_revenue: 23450,
+      total_revenue: 13600, // Sum of sample revenues
       revenue_change: 12.5,
       pending_invoices: 8,
       paid_invoices: 32,
@@ -217,8 +219,8 @@ const Dashboard: React.FC = () => {
                               : 'bg-gray-300 hover:bg-gray-400'
                           }`}
                           style={{ 
-                            height: `${Math.max(heightPercentage, 4)}%`,
-                            minHeight: '4px'
+                            height: `${heightPercentage}%`,
+                            minHeight: item.revenue > 0 ? '8px' : '4px'
                           }}
                         ></div>
                       </div>
