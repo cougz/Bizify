@@ -4,7 +4,6 @@ import sqlalchemy.orm
 from datetime import datetime, timedelta
 import io
 from typing import List, Optional
-import random
 from app import models, schemas
 from app.pdf_generator import generate_pdf
 
@@ -498,9 +497,6 @@ def get_dashboard_data(db: Session, user_id: int):
             models.Invoice.issue_date <= month_end
         ).scalar() or 0.0
         
-        # Ensure we have some revenue data for display purposes
-        if month_revenue == 0 and i < 3:  # For recent months, ensure some data
-            month_revenue = random.uniform(500, 2000)  # Random value between 500-2000
         
         revenue_data.append({
             "month": month_start.strftime("%b"),
