@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiDownload, FiUpload, FiTrash2 } from 'react-icons/fi';
+import { FiDownload, FiUpload } from 'react-icons/fi';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';

@@ -84,7 +84,6 @@ const ExportImportModal: React.FC<ExportImportModalProps> = ({ isOpen, onClose }
   });
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
 
   const handleExport = async () => {
     try {
@@ -156,7 +155,6 @@ const ExportImportModal: React.FC<ExportImportModalProps> = ({ isOpen, onClose }
       setError('');
       setImportPreview(null);
       setImportResult(null);
-      setShowPreview(false);
       
       // Auto-preview the file
       await handlePreview(file);
@@ -176,7 +174,6 @@ const ExportImportModal: React.FC<ExportImportModalProps> = ({ isOpen, onClose }
       
       const response = await exportAPI.previewImport(fileToPreview);
       setImportPreview(response.data);
-      setShowPreview(true);
       
     } catch (err: any) {
       console.error('Preview failed:', err);
@@ -221,7 +218,6 @@ const ExportImportModal: React.FC<ExportImportModalProps> = ({ isOpen, onClose }
     setImportFile(null);
     setImportPreview(null);
     setImportResult(null);
-    setShowPreview(false);
     setExportOptions({
       format: 'json',
       includeCustomers: true,
@@ -572,7 +568,7 @@ const ExportImportModal: React.FC<ExportImportModalProps> = ({ isOpen, onClose }
                 </Button>
                 <Button
                   onClick={handleImport}
-                  disabled={!importFile || isImporting || (importPreview && importPreview.validation_errors.length > 0)}
+                  disabled={!importFile || isImporting || (importPreview?.validation_errors?.length ?? 0) > 0}
                   variant="primary"
                 >
                   {isImporting ? (
