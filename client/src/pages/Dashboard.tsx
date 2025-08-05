@@ -203,24 +203,36 @@ const Dashboard: React.FC = () => {
                 {data.revenue_data.map((item, index) => {
                   // Calculate max revenue for proportional heights
                   const maxRevenue = Math.max(...data.revenue_data.map(d => d.revenue));
-                  const heightPercentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+                  
+                  // Calculate height in pixels for proper proportional scaling
+                  const chartHeight = 192; // h-48 = 192px
+                  const minHeightPx = item.revenue > 0 ? 8 : 4; // Minimum height in pixels
+                  
+                  let barHeightPx;
+                  if (maxRevenue > 0) {
+                    // Calculate proportional height
+                    const proportionalHeight = (item.revenue / maxRevenue) * chartHeight;
+                    // Ensure minimum height for visibility while preserving proportions
+                    barHeightPx = item.revenue > 0 ? Math.max(proportionalHeight, minHeightPx) : minHeightPx;
+                  } else {
+                    barHeightPx = minHeightPx;
+                  }
                   
                   return (
                     <div key={index} className="flex flex-col items-center flex-1">
                       <div className="relative w-full">
                         {/* Tooltip showing actual value */}
-                        <div className="opacity-0 hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transition-opacity">
+                        <div className="opacity-0 hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transition-opacity">
                           {formatCurrency(item.revenue, currency)}
                         </div>
                         <div 
                           className={`w-full rounded-t transition-all duration-300 ${
                             item.revenue > 0 
-                              ? 'bg-blue-500 hover:bg-blue-600' 
-                              : 'bg-gray-300 hover:bg-gray-400'
+                              ? 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-400 dark:hover:bg-blue-500' 
+                              : 'bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500'
                           }`}
                           style={{ 
-                            height: `${heightPercentage}%`,
-                            minHeight: item.revenue > 0 ? '8px' : '4px'
+                            height: `${barHeightPx}px`
                           }}
                         ></div>
                       </div>
