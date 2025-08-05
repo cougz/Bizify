@@ -643,3 +643,4 @@ def update_settings(db: Session, settings: schemas.SettingsUpdate, user_id: int)
         db.refresh(db_settings)
     
     return db_settings
+

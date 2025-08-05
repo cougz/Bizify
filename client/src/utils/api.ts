@@ -188,4 +188,42 @@ export const settingsAPI = {
   reset: () => api.post('/settings/reset'),
 };
 
+// Export/Import API
+export const exportAPI = {
+  exportData: (options: any) => {
+    const token = localStorage.getItem('token');
+    return axios.post(`${API_URL}/export`, options, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      responseType: 'blob'
+    });
+  },
+  previewImport: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return api.post('/import/preview', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
+  importData: (file: File, options: any) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('update_existing', options.updateExisting.toString());
+    formData.append('import_settings', options.importSettings.toString());
+    formData.append('import_customers', options.importCustomers.toString());
+    formData.append('import_invoices', options.importInvoices.toString());
+    formData.append('skip_duplicates', options.skipDuplicates.toString());
+    
+    return api.post('/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  }
+};
+
 export default api;

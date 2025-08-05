@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { FiDownload, FiUpload, FiTrash2 } from 'react-icons/fi';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import ExportImportModal from '../components/ExportImportModal';
 
 interface SettingsData {
   id?: number;
@@ -54,6 +56,7 @@ const Settings: React.FC = () => {
   const [success, setSuccess] = useState<string>('');
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [resetConfirmText, setResetConfirmText] = useState<string>('');
+  const [showExportImportModal, setShowExportImportModal] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -484,6 +487,51 @@ const Settings: React.FC = () => {
         </div>
       </form>
       
+      {/* Export/Import Data Card */}
+      <Card className="mt-6">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Export & Import Data</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Export your data to migrate to another installation or create backups. 
+            Import data from previous exports to restore information.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h3 className="font-medium text-gray-800 dark:text-gray-100">Export Data</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Download your data in various formats (JSON, Excel, CSV, or complete backup).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-gray-800 dark:text-gray-100">Import Data</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Upload previously exported data with preview and selective import options.
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setShowExportImportModal(true)}
+            >
+              <FiDownload className="mr-2" />
+              Export Data
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowExportImportModal(true)}
+            >
+              <FiUpload className="mr-2" />
+              Import Data
+            </Button>
+          </div>
+        </div>
+      </Card>
+      
       {/* Reset Data Card */}
       <Card className="mt-6 bg-red-50">
         <div className="p-6">
@@ -566,6 +614,12 @@ const Settings: React.FC = () => {
           )}
         </div>
       </Card>
+      
+      {/* Export/Import Modal */}
+      <ExportImportModal
+        isOpen={showExportImportModal}
+        onClose={() => setShowExportImportModal(false)}
+      />
     </div>
   );
 };

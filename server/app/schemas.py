@@ -306,3 +306,63 @@ class DashboardData(BaseModel):
     overdue_invoices: int
     revenue_data: List[dict]
     invoice_status_data: dict
+
+# Export/Import schemas
+from enum import Enum
+
+class ExportFormat(str, Enum):
+    JSON = "json"
+    CSV = "csv"
+    EXCEL = "excel"
+    BACKUP = "backup"
+
+class ExportRequest(BaseModel):
+    format: ExportFormat = ExportFormat.JSON
+    include_customers: bool = True
+    include_invoices: bool = True
+    include_settings: bool = True
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+    customer_ids: Optional[List[int]] = None
+
+class ExportData(BaseModel):
+    export_version: str = "1.0"
+    export_date: datetime
+    application: str = "Bizify"
+    user_info: dict
+    settings: Optional[dict] = None
+    customers: List[dict] = []
+    invoices: List[dict] = []
+
+class ImportOptions(BaseModel):
+    update_existing: bool = False
+    import_settings: bool = True
+    import_customers: bool = True
+    import_invoices: bool = True
+    skip_duplicates: bool = True
+
+class ImportPreview(BaseModel):
+    total_customers: int
+    total_invoices: int
+    has_settings: bool
+    conflicts: List[dict] = []
+    validation_errors: List[str] = []
+    warnings: List[str] = []
+
+class ImportStats(BaseModel):
+    customers_created: int = 0
+    customers_updated: int = 0
+    invoices_created: int = 0
+    settings_updated: bool = False
+
+class ImportResult(BaseModel):
+    success: bool
+    message: str
+    stats: ImportStats
+    errors: List[str] = []
+    warnings: List[str] = []
+
+class ExportResponse(BaseModel):
+    task_id: Optional[str] = None
+    status: str
+    download_url: Optional[str] = None

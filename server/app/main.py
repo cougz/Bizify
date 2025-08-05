@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import importlib.util
 import os
 import sys
@@ -10,6 +10,8 @@ import sys
 from app.database import engine, get_db
 from app import models, schemas, crud
 from app.auth import auth_router, get_current_user
+from app.export_service import ExportService
+from app.import_service import ImportService
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -280,6 +282,90 @@ def reset_user_data(
     - Create default settings
     """
     return crud.reset_user_data(db=db, user_id=current_user.id)
+
+# Export/Import endpoints
+@app.post("/api/export")
+def export_data(
+    request: schemas.ExportRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Export data in requested format"""
+    try:
+        export_service = ExportService(db, current_user.id)
+        data, filename = export_service.export_data(request)
+        media_type = export_service.get_media_type(request.format)
+        
+        return Response(
+            content=data,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@app.post("/api/import/preview", response_model=schemas.ImportPreview)
+async def preview_import(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Preview import without making changes"""
+    try:
+        contents = await file.read()
+        import_service = ImportService(db, current_user.id)
+        
+        # Determine format from file extension
+        format = "json"
+        if file.filename:
+            if file.filename.endswith('.zip'):
+                format = "zip"
+            elif file.filename.endswith('.json'):
+                format = "json"
+        
+        preview = import_service.preview_import(contents, format, file.filename or "")
+        return preview
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Preview failed: {str(e)}")
+
+@app.post("/api/import", response_model=schemas.ImportResult)
+async def import_data(
+    file: UploadFile = File(...),
+    update_existing: bool = Form(False),
+    import_settings: bool = Form(True),
+    import_customers: bool = Form(True),
+    import_invoices: bool = Form(True),
+    skip_duplicates: bool = Form(True),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Import data from uploaded file"""
+    try:
+        contents = await file.read()
+        
+        # Determine format from file extension
+        format = "json"
+        if file.filename:
+            if file.filename.endswith('.zip'):
+                format = "zip"
+            elif file.filename.endswith('.json'):
+                format = "json"
+        
+        import_service = ImportService(db, current_user.id)
+        options = schemas.ImportOptions(
+            update_existing=update_existing,
+            import_settings=import_settings,
+            import_customers=import_customers,
+            import_invoices=import_invoices,
+            skip_duplicates=skip_duplicates
+        )
+        
+        result = import_service.import_data(contents, format, file.filename or "", options)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
