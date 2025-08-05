@@ -30,6 +30,36 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [currency, setCurrency] = useState<string>('USD');
 
+  // Generate sample data for demonstration when no real data exists
+  const generateSampleData = (): DashboardData => {
+    const currentDate = new Date();
+    const months = [];
+    
+    // Generate last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      months.push({
+        month: date.toLocaleDateString('en-US', { month: 'short' }),
+        revenue: Math.floor(Math.random() * 5000) + 1000 // Random revenue between 1000-6000
+      });
+    }
+    
+    return {
+      total_customers: 12,
+      total_invoices: 45,
+      total_revenue: 23450,
+      revenue_change: 12.5,
+      pending_invoices: 8,
+      paid_invoices: 32,
+      overdue_invoices: 5,
+      revenue_data: months,
+      invoice_status_data: {
+        labels: ['Paid', 'Pending', 'Overdue'],
+        data: [32, 8, 5]
+      }
+    };
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,28 +78,36 @@ const Dashboard: React.FC = () => {
         setError('Failed to load dashboard data');
         console.error(err);
         
-        // Fallback to empty data structure if API fails
-        setData({
-          total_customers: 0,
-          total_invoices: 0,
-          total_revenue: 0,
-          revenue_change: 0,
-          pending_invoices: 0,
-          paid_invoices: 0,
-          overdue_invoices: 0,
-          revenue_data: [
-            { month: 'Jan', revenue: 0 },
-            { month: 'Feb', revenue: 0 },
-            { month: 'Mar', revenue: 0 },
-            { month: 'Apr', revenue: 0 },
-            { month: 'May', revenue: 0 },
-            { month: 'Jun', revenue: 0 }
-          ],
-          invoice_status_data: {
-            labels: ['Paid', 'Pending', 'Overdue'],
-            data: [0, 0, 0]
-          }
-        });
+        // For development: use sample data to demonstrate chart functionality
+        // In production: show empty state
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Using sample data for development');
+          setData(generateSampleData());
+          setCurrency('EUR'); // Test with EUR formatting
+        } else {
+          // Production: show empty state
+          setData({
+            total_customers: 0,
+            total_invoices: 0,
+            total_revenue: 0,
+            revenue_change: 0,
+            pending_invoices: 0,
+            paid_invoices: 0,
+            overdue_invoices: 0,
+            revenue_data: [
+              { month: 'Jan', revenue: 0 },
+              { month: 'Feb', revenue: 0 },
+              { month: 'Mar', revenue: 0 },
+              { month: 'Apr', revenue: 0 },
+              { month: 'May', revenue: 0 },
+              { month: 'Jun', revenue: 0 }
+            ],
+            invoice_status_data: {
+              labels: ['Paid', 'Pending', 'Overdue'],
+              data: [0, 0, 0]
+            }
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -148,21 +186,59 @@ const Dashboard: React.FC = () => {
       <Card>
         <div className="p-4">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Revenue Overview</h2>
-          <div className="h-64">
-            {/* In a real app, you would use Chart.js or another charting library */}
-            <div className="flex h-48 items-end space-x-2">
-              {data.revenue_data.map((item, index) => (
-                <div key={index} className="flex flex-col items-center flex-1">
-                  <div 
-                    className="w-full bg-blue-500 rounded-t"
-                    style={{ 
-                      height: `${(item.revenue / Math.max(...data.revenue_data.map(d => d.revenue))) * 100}%` 
-                    }}
-                  ></div>
-                  <div className="text-xs mt-2 text-gray-600 dark:text-gray-400">{item.month}</div>
+          <div className="h-64 relative">
+            {data.revenue_data.every(item => item.revenue === 0) ? (
+              /* No data message */
+              <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400">
+                <div className="text-center">
+                  <div className="text-sm mb-1">No revenue data available</div>
+                  <div className="text-xs">Revenue will appear here once you have paid invoices</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              /* Chart with data */
+              <div className="flex h-48 items-end space-x-2">
+                {data.revenue_data.map((item, index) => {
+                  // Calculate max revenue for proportional heights
+                  const maxRevenue = Math.max(...data.revenue_data.map(d => d.revenue));
+                  const heightPercentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center flex-1">
+                      <div className="relative w-full">
+                        {/* Tooltip showing actual value */}
+                        <div className="opacity-0 hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transition-opacity">
+                          {formatCurrency(item.revenue, currency)}
+                        </div>
+                        <div 
+                          className={`w-full rounded-t transition-all duration-300 ${
+                            item.revenue > 0 
+                              ? 'bg-blue-500 hover:bg-blue-600' 
+                              : 'bg-gray-300 hover:bg-gray-400'
+                          }`}
+                          style={{ 
+                            height: `${Math.max(heightPercentage, 4)}%`,
+                            minHeight: '4px'
+                          }}
+                        ></div>
+                      </div>
+                      <div className="text-xs mt-2 text-gray-600 dark:text-gray-400">{item.month}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Month labels for empty state */}
+            {data.revenue_data.every(item => item.revenue === 0) && (
+              <div className="flex justify-between px-2 mt-2">
+                {data.revenue_data.map((item, index) => (
+                  <div key={index} className="text-xs text-gray-600 dark:text-gray-400 flex-1 text-center">
+                    {item.month}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Card>
